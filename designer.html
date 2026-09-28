@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/designer.css?v=5" />
+    <link rel="stylesheet" href="css/designer.css?v=6" />
   </head>
   <body>
     <header class="app-bar">
@@ -94,6 +94,17 @@
           </div>
         </div>
 
+        <div class="field">
+          <span class="opt-label">Piekariņa tips</span>
+          <div
+            class="seg"
+            id="hardwareSeg"
+            role="group"
+            aria-label="Piekariņa tips"
+          ></div>
+          <p class="hint">Līdz 10 simboliem — bāzes cenā. Garākam tekstam +0,50 €. Karabīne — +0,50 €.</p>
+        </div>
+
         <div class="summary">
           <h2>Tava izvēle</h2>
           <dl>
@@ -109,6 +120,10 @@
             <dd id="summaryLength">—</dd>
             <dt>Stiprinājums</dt>
             <dd id="summaryHole">—</dd>
+            <dt>Piekariņa tips</dt>
+            <dd id="summaryHardware">—</dd>
+            <dt>Cena</dt>
+            <dd id="summaryPrice">—</dd>
           </dl>
         </div>
 
@@ -122,12 +137,16 @@
       </aside>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js?v=2"></script>
+    <script src="js/supabase-client.js?v=2"></script>
     <script src="vendor/clipper.js"></script>
     <script src="vendor/opentype.min.js"></script>
-    <script src="js/config.js?v=19"></script>
+    <script src="js/config.js?v=22"></script>
+    <script src="js/pricing.js?v=4"></script>
     <script src="js/fonts.js?v=7"></script>
     <script src="js/geometry.js?v=14"></script>
-    <script src="js/cart.js?v=7"></script>
-    <script src="js/preview.js?v=15"></script>
+    <script src="js/cart.js?v=8"></script>
+    <script src="js/preview.js?v=18"></script>
   </body>
 </html>

@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/landing.css?v=20" />
-    <link rel="stylesheet" href="css/admin.css?v=6" />
+    <link rel="stylesheet" href="css/admin.css?v=8" />
   </head>
   <body class="admin-body">
     <a class="skip" href="#saturs">Uz saturu</a>
@@ -81,6 +81,15 @@
           >
             Ziņas <span data-count="messages-unread">0</span>
           </button>
+          <button
+            type="button"
+            class="admin-tab"
+            role="tab"
+            aria-selected="false"
+            data-tab="pricing"
+          >
+            Cenas
+          </button>
           <button type="button" class="btn btn-small btn-ghost" id="refreshBtn">
             Atsvaidzināt
           </button>
@@ -130,6 +139,103 @@
           <div id="messagesList" class="admin-list"></div>
         </div>
 
+        <div id="pricingPane" class="admin-pane" data-pane="pricing" hidden>
+          <header class="section-head admin-pricing-head">
+            <h3>Cenas</h3>
+            <p>Izmaiņas uzreiz attiecas uz mājaslapu un pasūtījumu kalkulatoru.</p>
+          </header>
+          <form id="pricingForm" class="admin-pricing-form">
+            <fieldset class="admin-pricing-block">
+              <legend>Gatavo bāzes cena (€)</legend>
+              <div class="admin-pricing-row">
+                <div class="field">
+                  <label for="priceReadyS">S</label>
+                  <input id="priceReadyS" name="readyS" type="number" min="0" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="priceReadyM">M</label>
+                  <input id="priceReadyM" name="readyM" type="number" min="0" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="priceReadyL">L</label>
+                  <input id="priceReadyL" name="readyL" type="number" min="0" step="0.01" required />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="admin-pricing-block">
+              <legend>Karabīnes papildcena (€)</legend>
+              <div class="admin-pricing-row admin-pricing-row--single">
+                <div class="field">
+                  <label for="priceCarabiner">Papildmaksa pie karabīnes</label>
+                  <input
+                    id="priceCarabiner"
+                    name="carabiner"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="admin-pricing-block">
+              <legend>Individuālo bāzes cena (€)</legend>
+              <div class="admin-pricing-row">
+                <div class="field">
+                  <label for="priceCustomS">S</label>
+                  <input id="priceCustomS" name="customS" type="number" min="0" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="priceCustomM">M</label>
+                  <input id="priceCustomM" name="customM" type="number" min="0" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="priceCustomL">L</label>
+                  <input id="priceCustomL" name="customL" type="number" min="0" step="0.01" required />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="admin-pricing-block">
+              <legend>Papildmaksa par garumu (€)</legend>
+              <p class="admin-pricing-hint">
+                Individuālajā bāzē ietilpst noteikts simbolu skaits; virs tā — šī papildmaksa.
+              </p>
+              <div class="admin-pricing-row">
+                <div class="field">
+                  <label for="priceFreeChars">Bezmaksas simboli</label>
+                  <input
+                    id="priceFreeChars"
+                    name="freeChars"
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                  />
+                </div>
+                <div class="field">
+                  <label for="priceLongText">Papildmaksa par garāku tekstu</label>
+                  <input
+                    id="priceLongText"
+                    name="longText"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <div class="order-actions">
+              <button class="btn" type="submit" id="pricingSaveBtn">Saglabāt cenas</button>
+            </div>
+            <p class="order-status" id="pricingStatus" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
         <p class="order-status" id="dashStatus" role="status" aria-live="polite"></p>
       </section>
     </main>
@@ -137,6 +243,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js?v=2"></script>
     <script src="js/supabase-client.js?v=2"></script>
-    <script src="js/admin.js?v=9"></script>
+    <script src="js/config.js?v=22"></script>
+    <script src="js/pricing.js?v=4"></script>
+    <script src="js/admin.js?v=11"></script>
   </body>
 </html>

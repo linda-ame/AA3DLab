@@ -1,6 +1,10 @@
 window.AA3DCart = (() => {
   const KEY = "aa3dlab-order-v1";
 
+  function Pricing() {
+    return window.TagLabPricing || null;
+  }
+
   function empty() {
     return {
       items: [],
@@ -76,17 +80,45 @@ window.AA3DCart = (() => {
     return load().items.length;
   }
 
-  function addReady({ colorId, colorLabel, sizeId, sizeLabel }) {
+  function resolveHardware(hardwareId, hardwareLabel) {
+    const P = Pricing();
+    const hw = P ? P.hardwareOf(hardwareId) : null;
+    return {
+      hardwareId: (hw && hw.id) || hardwareId || "ring",
+      hardwareLabel:
+        hardwareLabel ||
+        (hw && hw.label) ||
+        (hardwareId === "carabiner" ? "Riņķītis + karabīne" : "Standarta riņķītis"),
+    };
+  }
+
+  function addReady({
+    colorId,
+    colorLabel,
+    sizeId,
+    sizeLabel,
+    hardwareId,
+    hardwareLabel,
+  }) {
     const data = load();
+    const hw = resolveHardware(hardwareId, hardwareLabel);
+    const P = Pricing();
+    const priced = P
+      ? P.priceReady({ sizeId, hardwareId: hw.hardwareId })
+      : null;
     const existing = data.items.find(
       (it) =>
         it.type === "ready" &&
         it.colorId === colorId &&
-        it.sizeId === sizeId
+        it.sizeId === sizeId &&
+        (it.hardwareId || "ring") === hw.hardwareId
     );
     if (existing) {
       existing.qty = (Number(existing.qty) || 1) + 1;
       if (sizeLabel) existing.sizeLabel = sizeLabel;
+      existing.hardwareId = hw.hardwareId;
+      existing.hardwareLabel = hw.hardwareLabel;
+      if (priced) existing.unitPriceEur = priced.unitEur;
     } else {
       data.items.push({
         id: uid(),
@@ -96,6 +128,9 @@ window.AA3DCart = (() => {
         colorLabel,
         sizeId,
         sizeLabel: sizeLabel || sizeId,
+        hardwareId: hw.hardwareId,
+        hardwareLabel: hw.hardwareLabel,
+        unitPriceEur: priced ? priced.unitEur : null,
       });
     }
     save(data);
@@ -104,6 +139,15 @@ window.AA3DCart = (() => {
 
   function addCustom(item) {
     const data = load();
+    const hw = resolveHardware(item.hardwareId, item.hardwareLabel);
+    const P = Pricing();
+    const priced = P
+      ? P.priceCustom({
+          sizeId: item.sizeId,
+          hardwareId: hw.hardwareId,
+          text: item.text,
+        })
+      : null;
     data.items.push({
       id: uid(),
       type: "custom",
@@ -120,6 +164,10 @@ window.AA3DCart = (() => {
       holeLabel: item.holeLabel || "",
       lengthMm: item.lengthMm || null,
       lengthLabel: item.lengthLabel || "",
+      hardwareId: hw.hardwareId,
+      hardwareLabel: hw.hardwareLabel,
+      unitPriceEur: priced ? priced.unitEur : null,
+      charCount: priced ? priced.charCount : null,
       previewSvg: item.previewSvg || "",
       previewPng: item.previewPng || "",
     });
@@ -164,14 +212,26 @@ window.AA3DCart = (() => {
   }
 
   function itemSummary(it) {
+    const P = Pricing();
+    const hw =
+      it.hardwareLabel ||
+      (P && P.hardwareOf(it.hardwareId).label) ||
+      "";
+    const price =
+      P && P.priceItem(it)
+        ? P.formatPrice(P.priceItem(it).unitEur)
+        : it.unitPriceEur != null
+          ? String(it.unitPriceEur) + " €"
+          : "";
     if (it.type === "ready") {
-      return `Gatavais · ${it.colorLabel} · burta augstums ${it.sizeLabel || it.sizeId}`;
+      return `Gatavais · ${it.colorLabel} · burta augstums ${it.sizeLabel || it.sizeId}${hw ? " · " + hw : ""}${price ? " · " + price : ""}`;
     }
-    return `Individuāls · “${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · " + it.lengthLabel : ""}`;
+    return `Individuāls · “${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · " + it.lengthLabel : ""}${hw ? " · " + hw : ""}${price ? " · " + price : ""}`;
   }
 
   function orderText() {
     const data = load();
+    const P = Pricing();
     const lines = ["Sveiki! Vēlos pasūtīt piekariņus.", "", "=== Pasūtījums ==="];
     data.items.forEach((it, i) => {
       lines.push("");
@@ -186,7 +246,25 @@ window.AA3DCart = (() => {
         }
         if (it.colorHex) lines.push(`   Krāsas kods: ${it.colorHex}`);
       }
+      if (it.hardwareLabel || it.hardwareId) {
+        lines.push(
+          `   Piekariņa tips: ${it.hardwareLabel || it.hardwareId}`
+        );
+      }
+      if (P) {
+        const p = P.priceItem(it);
+        if (p) {
+          lines.push(`   Cena gab.: ${P.formatPrice(p.unitEur)}`);
+          lines.push(
+            `   Rinda: ${P.formatPrice(P.lineTotal(it))} (${it.qty} gab.)`
+          );
+        }
+      }
     });
+    if (P) {
+      lines.push("");
+      lines.push(`Kopā: ${P.formatPrice(P.cartTotal(data.items))}`);
+    }
     lines.push("");
     lines.push("=== Kontakti ===");
     if (data.contact.name) lines.push(`Vārds, uzvārds: ${data.contact.name}`);

@@ -2,12 +2,14 @@
   const cfg = window.TagLabConfig;
   const Fonts = window.TagLabFonts;
   const Geo = window.TagLabGeometry;
+  const Pricing = window.TagLabPricing;
 
   const state = {
     ...cfg.DEFAULTS,
     showHole: false,
     symbolBefore: null,
     symbolAfter: null,
+    hardwareId: (cfg.DEFAULTS && cfg.DEFAULTS.hardwareId) || "ring",
   };
 
   let lastBuild = null;
@@ -82,6 +84,21 @@
     return side === "end" ? "vārda beigās" : "vārda sākumā";
   }
 
+  function hardwareLabel(id) {
+    if (!Pricing) return id === "carabiner" ? "Riņķītis + karabīne" : "Standarta riņķītis";
+    const hw = Pricing.hardwareOf(id);
+    return hw.label;
+  }
+
+  function currentPrice() {
+    if (!Pricing) return null;
+    return Pricing.priceCustom({
+      sizeId: state.size,
+      hardwareId: state.hardwareId,
+      text: state.text,
+    });
+  }
+
   function setActive(container, attr, value) {
     container.querySelectorAll("button").forEach((btn) => {
       btn.classList.toggle("is-on", btn.getAttribute(attr) === value);
@@ -124,6 +141,24 @@
       lenEl.textContent = mm == null ? "—" : formatLengthCm(mm);
     }
     $("summaryHole").textContent = holeLabel(state.holeSide);
+    const hwEl = $("summaryHardware");
+    if (hwEl) hwEl.textContent = hardwareLabel(state.hardwareId);
+    const priceEl = $("summaryPrice");
+    if (priceEl && Pricing) {
+      const p = currentPrice();
+      if (!p) {
+        priceEl.textContent = "—";
+      } else {
+        let t = Pricing.formatPrice(p.unitEur);
+        if (p.longTextEur > 0) {
+          t +=
+            " (garš teksts (" +
+            p.charCount +
+            " simboli) = +50c)";
+        }
+        priceEl.textContent = t;
+      }
+    }
   }
 
   function updateFontWarnings(fam, missing) {
@@ -250,6 +285,12 @@
       `Izmērs: ${sizeLabel(state.size)}`,
       `Aptuvenais garums: ${len == null ? "—" : formatLengthCm(len)}`,
       `Caurums: ${holeLabel(state.holeSide)}`,
+      `Piekariņa tips: ${hardwareLabel(state.hardwareId)}`,
+      `Cena: ${
+        Pricing && currentPrice()
+          ? Pricing.formatPrice(currentPrice().unitEur)
+          : "—"
+      }`,
       "",
       "Marshall parametri (ražošanai):",
       `  font size ${m.fontSizePx}px`,
@@ -363,6 +404,8 @@
         lengthLabel: formatLengthCm(estimateLengthMm()),
         holeSide: state.holeSide,
         holeLabel: holeLabel(state.holeSide),
+        hardwareId: state.hardwareId,
+        hardwareLabel: hardwareLabel(state.hardwareId),
         previewSvg,
         previewPng,
       });
@@ -416,6 +459,27 @@
       });
     });
 
+    const hardwareSeg = $("hardwareSeg");
+    if (hardwareSeg && Pricing) {
+      Pricing.hardwareList().forEach((hw) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("data-hardware", hw.id);
+        b.className = hw.id === state.hardwareId ? "is-on" : "";
+        const fee =
+          hw.surchargeEur > 0
+            ? ` (+${Pricing.formatPrice(hw.surchargeEur)})`
+            : "";
+        b.textContent = (hw.short || hw.label) + fee;
+        b.addEventListener("click", () => {
+          state.hardwareId = hw.id;
+          setActive(hardwareSeg, "data-hardware", hw.id);
+          updateSummary();
+        });
+        hardwareSeg.appendChild(b);
+      });
+    }
+
     const swatches = $("colorSwatches");
     cfg.COLORS.forEach((c) => {
       const b = document.createElement("button");
@@ -461,6 +525,28 @@
     $("copyBtn").addEventListener("click", copyOrder);
   }
 
-  bind();
-  rebuild();
+  function refreshHardwareLabels() {
+    const hardwareSeg = $("hardwareSeg");
+    if (!hardwareSeg || !Pricing) return;
+    hardwareSeg.querySelectorAll("[data-hardware]").forEach((b) => {
+      const hw = Pricing.hardwareOf(b.getAttribute("data-hardware"));
+      const fee =
+        hw.surchargeEur > 0
+          ? ` (+${Pricing.formatPrice(hw.surchargeEur)})`
+          : "";
+      b.textContent = (hw.short || hw.label) + fee;
+    });
+  }
+
+  (async () => {
+    if (Pricing) await Pricing.loadFromSupabase();
+    bind();
+    rebuild();
+    if (Pricing) {
+      Pricing.onChange(() => {
+        refreshHardwareLabels();
+        updateSummary();
+      });
+    }
+  })();
 })();

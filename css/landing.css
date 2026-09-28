@@ -554,6 +554,14 @@ a {
   font-size: 1.05rem;
 }
 
+.product-price {
+  margin: -0.35rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+}
+
 .steps {
   list-style: none;
   margin: 0 auto;
@@ -739,6 +747,21 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.order-line-price {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.order-total {
+  margin: 0;
+  padding: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
 }
 
 .order-line {

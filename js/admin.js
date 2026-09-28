@@ -13,6 +13,9 @@
   const messagesList = document.getElementById("messagesList");
   const ordersEmpty = document.getElementById("ordersEmpty");
   const messagesEmpty = document.getElementById("messagesEmpty");
+  const pricingForm = document.getElementById("pricingForm");
+  const pricingStatus = document.getElementById("pricingStatus");
+  const pricingSaveBtn = document.getElementById("pricingSaveBtn");
 
   let orders = [];
   let messages = [];
@@ -24,6 +27,7 @@
   let currentUserId = null;
   let myMessageReads = new Set();
   let myOrderViews = new Set();
+  let pricingLoaded = false;
 
   function isTypingInDash() {
     const el = document.activeElement;
@@ -45,6 +49,80 @@
     dashStatus.classList.toggle("is-error", Boolean(isError));
   }
 
+  function setPricingStatus(msg, isError) {
+    if (!pricingStatus) return;
+    pricingStatus.textContent = msg || "";
+    pricingStatus.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function fillPricingForm(snap) {
+    if (!pricingForm || !snap) return;
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = String(val);
+    };
+    set("priceReadyS", snap.readyBaseEur.S);
+    set("priceReadyM", snap.readyBaseEur.M);
+    set("priceReadyL", snap.readyBaseEur.L);
+    set("priceCustomS", snap.customBaseEur.S);
+    set("priceCustomM", snap.customBaseEur.M);
+    set("priceCustomL", snap.customBaseEur.L);
+    set("priceCarabiner", snap.carabinerSurchargeEur);
+    set("priceFreeChars", snap.freeChars);
+    set("priceLongText", snap.longTextSurchargeEur);
+  }
+
+  function readPricingForm() {
+    const num = (id) => Number(document.getElementById(id)?.value);
+    const int = (id) => Math.round(Number(document.getElementById(id)?.value));
+    return {
+      readyBaseEur: {
+        S: num("priceReadyS"),
+        M: num("priceReadyM"),
+        L: num("priceReadyL"),
+      },
+      customBaseEur: {
+        S: num("priceCustomS"),
+        M: num("priceCustomM"),
+        L: num("priceCustomL"),
+      },
+      carabinerSurchargeEur: num("priceCarabiner"),
+      freeChars: int("priceFreeChars"),
+      longTextSurchargeEur: num("priceLongText"),
+    };
+  }
+
+  function pricingValid(snap) {
+    const check = (n) => Number.isFinite(n) && n >= 0;
+    return (
+      check(snap.readyBaseEur.S) &&
+      check(snap.readyBaseEur.M) &&
+      check(snap.readyBaseEur.L) &&
+      check(snap.customBaseEur.S) &&
+      check(snap.customBaseEur.M) &&
+      check(snap.customBaseEur.L) &&
+      check(snap.carabinerSurchargeEur) &&
+      check(snap.longTextSurchargeEur) &&
+      Number.isFinite(snap.freeChars) &&
+      snap.freeChars >= 0
+    );
+  }
+
+  async function loadPricing({ quiet = false } = {}) {
+    const Pricing = window.TagLabPricing;
+    const client = sb();
+    if (!Pricing) return;
+    if (!quiet) setPricingStatus("Ielādē cenas…");
+    const ok = client ? await Pricing.loadFromSupabase(client) : false;
+    fillPricingForm(Pricing.snapshot());
+    pricingLoaded = true;
+    if (!quiet) {
+      setPricingStatus(
+        ok ? "" : "Rāda noklusējuma cenas (DB vēl nav iestatīta — palaid schema.sql)."
+      );
+    }
+  }
+
   function fmtDate(iso) {
     try {
       return new Date(iso).toLocaleString("lv-LV", {
@@ -56,12 +134,28 @@
     }
   }
 
+  function formatEur(n) {
+    if (n == null || !Number.isFinite(Number(n))) return "";
+    return Number(n).toFixed(2).replace(".", ",").replace(/,00$/, "") + " €";
+  }
+
   function itemLine(it) {
     if (!it) return "—";
+    const hw = it.hardwareLabel
+      ? ` · ${it.hardwareLabel}`
+      : it.hardwareId === "carabiner"
+        ? " · Riņķītis + karabīne"
+        : "";
+    const price =
+      it.unitPriceEur != null
+        ? ` · ${formatEur(it.unitPriceEur)}`
+        : it.lineTotalEur != null
+          ? ` · ${formatEur(it.lineTotalEur)}`
+          : "";
     if (it.type === "ready") {
-      return `Gatavais · ${it.colorLabel || it.colorId} · ${it.sizeId} × ${it.qty || 1}`;
+      return `Gatavais · ${it.colorLabel || it.colorId} · ${it.sizeId}${hw}${price} × ${it.qty || 1}`;
     }
-    return `Individuāls · “${it.text || "—"}” · ${it.fontLabel || ""} · ${it.colorLabel || ""} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · " + it.lengthLabel : ""} × ${it.qty || 1}`;
+    return `Individuāls · “${it.text || "—"}” · ${it.fontLabel || ""} · ${it.colorLabel || ""} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · " + it.lengthLabel : ""}${hw}${price} × ${it.qty || 1}`;
   }
 
   function showLoggedOut() {
@@ -368,6 +462,21 @@
         }
         ul.appendChild(li);
       });
+      const orderSum = items.reduce((sum, it) => {
+        if (it.lineTotalEur != null && Number.isFinite(Number(it.lineTotalEur))) {
+          return sum + Number(it.lineTotalEur);
+        }
+        if (it.unitPriceEur != null && Number.isFinite(Number(it.unitPriceEur))) {
+          return sum + Number(it.unitPriceEur) * (Number(it.qty) || 1);
+        }
+        return sum;
+      }, 0);
+      if (orderSum > 0) {
+        const totalLi = document.createElement("li");
+        totalLi.className = "admin-item admin-item-total";
+        totalLi.textContent = "Kopā: " + formatEur(orderSum);
+        ul.appendChild(totalLi);
+      }
       if (row.note) {
         const wrap = card.querySelector('[data-f="note-wrap"]');
         wrap.hidden = false;
@@ -520,6 +629,7 @@
         return;
       }
       renderAll();
+      if (!pricingLoaded) await loadPricing({ quiet: true });
       if (!quiet) setDashStatus("");
     } finally {
       loadBusy = false;
@@ -647,8 +757,41 @@
       document.querySelectorAll(".admin-pane").forEach((pane) => {
         pane.hidden = pane.getAttribute("data-pane") !== id;
       });
+      if (id === "pricing") loadPricing();
     });
   });
+
+  if (pricingForm) {
+    pricingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const Pricing = window.TagLabPricing;
+      const client = sb();
+      if (!Pricing || !client) {
+        setPricingStatus("Supabase nav konfigurēts.", true);
+        return;
+      }
+      const snap = readPricingForm();
+      if (!pricingValid(snap)) {
+        setPricingStatus("Ievadi derīgas cenas (≥ 0).", true);
+        return;
+      }
+      if (pricingSaveBtn) pricingSaveBtn.disabled = true;
+      setPricingStatus("Saglabā…");
+      const res = await Pricing.saveToSupabase(client, snap);
+      if (pricingSaveBtn) pricingSaveBtn.disabled = false;
+      if (!res.ok) {
+        setPricingStatus(
+          "Neizdevās saglabāt: " +
+            (res.error || "kļūda") +
+            " (pārbaudi, vai palaists schema.sql ar site_settings).",
+          true
+        );
+        return;
+      }
+      fillPricingForm(Pricing.snapshot());
+      setPricingStatus("Cenas saglabātas.");
+    });
+  }
 
   document.getElementById("messagesFilters").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-filter]");

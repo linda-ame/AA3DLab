@@ -1,9 +1,11 @@
 (() => {
   const Cart = window.AA3DCart;
+  const Pricing = window.TagLabPricing;
 
   const listEl = document.getElementById("orderLines");
   const emptyEl = document.getElementById("orderEmpty");
   const formEl = document.getElementById("orderForm");
+  const totalEl = document.getElementById("orderTotal");
   const submitBtn = document.getElementById("submitOrder");
   const statusEl = document.getElementById("orderStatus");
 
@@ -24,6 +26,7 @@
 
   function itemsForDb(items) {
     return items.map((it) => {
+      const priced = Pricing ? Pricing.priceItem(it) : null;
       if (it.type === "ready") {
         return {
           type: "ready",
@@ -31,6 +34,15 @@
           colorId: it.colorId,
           colorLabel: it.colorLabel,
           sizeId: it.sizeId,
+          sizeLabel: it.sizeLabel || it.sizeId,
+          hardwareId: it.hardwareId || "ring",
+          hardwareLabel: it.hardwareLabel || (priced && priced.hardwareLabel) || "",
+          unitPriceEur: priced ? priced.unitEur : it.unitPriceEur ?? null,
+          lineTotalEur: priced
+            ? Pricing.lineTotal(it)
+            : it.unitPriceEur != null
+              ? +(it.unitPriceEur * (Number(it.qty) || 1)).toFixed(2)
+              : null,
         };
       }
       return {
@@ -48,6 +60,15 @@
         lengthLabel: it.lengthLabel || "",
         holeSide: it.holeSide,
         holeLabel: it.holeLabel,
+        hardwareId: it.hardwareId || "ring",
+        hardwareLabel: it.hardwareLabel || (priced && priced.hardwareLabel) || "",
+        charCount: priced ? priced.charCount : it.charCount ?? null,
+        unitPriceEur: priced ? priced.unitEur : it.unitPriceEur ?? null,
+        lineTotalEur: priced
+          ? Pricing.lineTotal(it)
+          : it.unitPriceEur != null
+            ? +(it.unitPriceEur * (Number(it.qty) || 1)).toFixed(2)
+            : null,
         // Prefer PNG for DB/admin (reliable display); keep SVG only as fallback
         previewPng: it.previewPng || "",
         previewSvg: it.previewPng ? "" : it.previewSvg || "",
@@ -73,6 +94,10 @@
       if (emptyEl) emptyEl.hidden = false;
       if (listEl) listEl.innerHTML = "";
       if (formEl) formEl.hidden = true;
+      if (totalEl) {
+        totalEl.hidden = true;
+        totalEl.textContent = "";
+      }
       return;
     }
 
@@ -85,12 +110,17 @@
       article.className = "order-line";
       article.dataset.id = it.id;
 
+      const priced = Pricing ? Pricing.priceItem(it) : null;
+      const hwLabel =
+        it.hardwareLabel ||
+        (priced && priced.hardwareLabel) ||
+        "";
       const title =
         it.type === "ready" ? "Gatavais modelis" : "Individuālais dizains";
       const detail =
         it.type === "ready"
-          ? `${it.colorLabel} · ${it.sizeId}`
-          : `“${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · garums " + it.lengthLabel : ""} · stiprinājums ${it.holeLabel || ""}`;
+          ? `${it.colorLabel} · ${it.sizeId}${hwLabel ? " · " + hwLabel : ""}`
+          : `“${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · garums " + it.lengthLabel : ""} · stiprinājums ${it.holeLabel || ""}${hwLabel ? " · " + hwLabel : ""}`;
 
       const main = document.createElement("div");
       main.className = "order-line-main";
@@ -122,7 +152,18 @@
 
       const side = document.createElement("div");
       side.className = "order-line-side";
+      const unit =
+        priced && Pricing
+          ? Pricing.formatPrice(priced.unitEur)
+          : it.unitPriceEur != null
+            ? String(it.unitPriceEur).replace(".", ",") + " €"
+            : "";
+      const line =
+        priced && Pricing
+          ? Pricing.formatPrice(Pricing.lineTotal(it))
+          : "";
       side.innerHTML = `
+        ${unit ? `<p class="order-line-price">${unit}${line && Number(it.qty) > 1 ? " · rinda " + line : ""}</p>` : ""}
         <label class="qty-label">
           <span>Daudzums</span>
           <input type="number" min="1" max="99" value="${Number(it.qty) || 1}" data-qty="${it.id}" />
@@ -134,6 +175,12 @@
       article.appendChild(side);
       listEl.appendChild(article);
     });
+
+    if (totalEl && Pricing) {
+      totalEl.hidden = false;
+      totalEl.textContent =
+        "Kopā: " + Pricing.formatPrice(Pricing.cartTotal(items));
+    }
   }
 
   function selectedPayment() {
@@ -157,11 +204,37 @@
     });
   }
 
+  function refreshTotals() {
+    if (!Pricing || !totalEl) return;
+    const items = Cart.load().items;
+    if (!items.length) {
+      totalEl.hidden = true;
+      totalEl.textContent = "";
+      return;
+    }
+    totalEl.hidden = false;
+    totalEl.textContent =
+      "Kopā: " + Pricing.formatPrice(Pricing.cartTotal(items));
+    listEl.querySelectorAll(".order-line").forEach((article) => {
+      const id = article.dataset.id;
+      const it = items.find((x) => x.id === id);
+      const priceEl = article.querySelector(".order-line-price");
+      if (!it || !priceEl) return;
+      const priced = Pricing.priceItem(it);
+      if (!priced) return;
+      const unit = Pricing.formatPrice(priced.unitEur);
+      const line = Pricing.formatPrice(Pricing.lineTotal(it));
+      priceEl.textContent =
+        unit + (Number(it.qty) > 1 ? " · rinda " + line : "");
+    });
+  }
+
   listEl.addEventListener("input", (e) => {
     const input = e.target.closest("[data-qty]");
     if (!input) return;
     Cart.updateQty(input.getAttribute("data-qty"), input.value);
     Cart.syncBadges();
+    refreshTotals();
   });
 
   listEl.addEventListener("click", (e) => {
@@ -262,5 +335,11 @@
     });
   }
 
-  render();
+  (async () => {
+    if (Pricing) {
+      await Pricing.loadFromSupabase();
+      Pricing.onChange(() => render());
+    }
+    render();
+  })();
 })();

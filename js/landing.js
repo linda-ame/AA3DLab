@@ -34,11 +34,15 @@
   let colorId = "blue";
   let sizeId = "M";
   let sizeLabel = "M · ≈ 2,2 cm";
+  let hardwareId = "ring";
 
   const swatchRoot = document.getElementById("colorSwatches");
   const sizeRoot = document.getElementById("sizeSeg");
+  const hardwareRoot = document.getElementById("hardwareSeg");
   const note = document.getElementById("selectionNote");
+  const priceEl = document.getElementById("selectionPrice");
   const productImg = document.getElementById("productImg");
+  const Pricing = window.TagLabPricing;
 
   const ORDER_SIZES =
     (window.TagLabConfig && window.TagLabConfig.ORDER_SIZES) || {
@@ -58,7 +62,15 @@
 
   function updateNote() {
     const color = COLORS.find((c) => c.id === colorId);
-    if (note && color) note.textContent = `${color.label} · ${sizeLabel}`;
+    const hw = Pricing ? Pricing.hardwareOf(hardwareId) : null;
+    const hwLabel = hw ? hw.short || hw.label : "";
+    if (note && color) {
+      note.textContent = `${color.label} · ${sizeLabel}${hwLabel ? " · " + hwLabel : ""}`;
+    }
+    if (priceEl && Pricing) {
+      const p = Pricing.priceReady({ sizeId, hardwareId });
+      priceEl.textContent = Pricing.formatPrice(p.unitEur);
+    }
   }
 
   function renderSwatches() {
@@ -113,6 +125,30 @@
       sizeRoot.appendChild(btn);
     });
     if (ORDER_SIZES[sizeId]) sizeLabel = ORDER_SIZES[sizeId].label;
+  }
+
+  function renderHardware() {
+    if (!hardwareRoot || !Pricing) return;
+    hardwareRoot.innerHTML = "";
+    Pricing.hardwareList().forEach((hw) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "size" + (hw.id === hardwareId ? " is-on" : "");
+      btn.dataset.hardware = hw.id;
+      const fee =
+        hw.surchargeEur > 0
+          ? ` (+${Pricing.formatPrice(hw.surchargeEur)})`
+          : "";
+      btn.textContent = (hw.short || hw.label) + fee;
+      btn.addEventListener("click", () => {
+        hardwareId = hw.id;
+        hardwareRoot.querySelectorAll(".size").forEach((el) => {
+          el.classList.toggle("is-on", el === btn);
+        });
+        updateNote();
+      });
+      hardwareRoot.appendChild(btn);
+    });
   }
 
   const revealEls = document.querySelectorAll(".step");
@@ -206,11 +242,16 @@
   if (addReadyBtn && window.AA3DCart) {
     addReadyBtn.addEventListener("click", () => {
       const color = COLORS.find((c) => c.id === colorId) || COLORS[0];
+      const hw = Pricing
+        ? Pricing.hardwareOf(hardwareId)
+        : { id: hardwareId, label: "Standarta riņķītis" };
       window.AA3DCart.addReady({
         colorId: color.id,
         colorLabel: color.label,
         sizeId,
         sizeLabel,
+        hardwareId: hw.id,
+        hardwareLabel: hw.label,
       });
       window.location.href = "pasutit.html";
     });
@@ -287,5 +328,19 @@
 
   renderSwatches();
   renderSizes();
+  renderHardware();
   applyColor();
+
+  if (Pricing) {
+    Pricing.onChange(() => {
+      renderHardware();
+      updateNote();
+    });
+    Pricing.loadFromSupabase().then((ok) => {
+      if (ok) {
+        renderHardware();
+        updateNote();
+      }
+    });
+  }
 })();

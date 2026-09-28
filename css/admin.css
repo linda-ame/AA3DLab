@@ -256,6 +256,13 @@
   margin: 0 0 0.4rem;
 }
 
+.admin-item-total {
+  margin-top: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line, rgba(22, 24, 28, 0.12));
+  font-weight: 700;
+}
+
 .admin-item-preview {
   max-width: 280px;
   padding: 0.55rem 0.7rem;
@@ -333,9 +340,86 @@
   color: var(--muted);
 }
 
+.admin-pricing-head {
+  margin-bottom: 1rem;
+}
+
+.admin-pricing-head h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.admin-pricing-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.admin-pricing-form {
+  display: grid;
+  gap: 1.15rem;
+  max-width: 36rem;
+}
+
+.admin-pricing-block {
+  margin: 0;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.admin-pricing-block legend {
+  padding: 0 0.35rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.admin-pricing-hint {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.admin-pricing-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-pricing-row--single {
+  grid-template-columns: minmax(0, 14rem);
+}
+
+.admin-pricing-form .field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+
+.admin-pricing-form .field input {
+  width: 100%;
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
 @media (max-width: 560px) {
   .admin-dl div {
     grid-template-columns: 1fr;
     gap: 0.1rem;
+  }
+
+  .admin-pricing-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-pricing-row--single {
+    grid-template-columns: 1fr;
   }
 }

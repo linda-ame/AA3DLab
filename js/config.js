@@ -50,6 +50,35 @@ window.TagLabConfig = (() => {
     { id: "yellow", label: "Dzeltens", hex: "#e6c200" },
   ];
 
+  const ORDER_EMAIL = "armands@pd.lv";
+
+  /** Piekariņa tips — riņķītis vai + karabīne */
+  const HARDWARE = {
+    ring: {
+      id: "ring",
+      label: "Standarta riņķītis",
+      short: "Riņķītis",
+      surchargeEur: 0,
+    },
+    carabiner: {
+      id: "carabiner",
+      label: "Riņķītis + karabīne",
+      short: "Riņķītis + karabīne",
+      surchargeEur: 0.5,
+    },
+  };
+
+  /**
+   * Cenas (€). Individuālajā bāzē ietilpst līdz freeChars simboliem;
+   * virs tam — longTextSurchargeEur.
+   */
+  const PRICING = {
+    readyBaseEur: { S: 1.5, M: 2.0, L: 2.5 },
+    customBaseEur: { S: 2.0, M: 2.5, L: 3.5 },
+    freeChars: 10,
+    longTextSurchargeEur: 0.5,
+  };
+
   const DEFAULTS = {
     text: "RĪDZE",
     size: "M",
@@ -63,9 +92,8 @@ window.TagLabConfig = (() => {
     textColor: "white",
     symbolBefore: null,
     symbolAfter: null,
+    hardwareId: "ring",
   };
-
-  const ORDER_EMAIL = "armands@pd.lv";
 
   return {
     LETTER_HEIGHT_MM,
@@ -78,6 +106,8 @@ window.TagLabConfig = (() => {
     PADDING,
     MIN_CONNECTION_MM,
     COLORS,
+    HARDWARE,
+    PRICING,
     DEFAULTS,
     ORDER_EMAIL,
     TRACKING,
