@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>AA3DLab — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/landing.css?v=20" />
+    <link rel="stylesheet" href="css/admin.css?v=6" />
+  </head>
+  <body class="admin-body">
+    <a class="skip" href="#saturs">Uz saturu</a>
+
+    <header class="top">
+      <span class="brand-mark">AA3DLab</span>
+      <nav class="nav" aria-label="Admin">
+        <span class="admin-nav-label">Admin</span>
+      </nav>
+      <div class="top-actions">
+        <button type="button" class="btn btn-small btn-ghost" id="logoutBtn" hidden>
+          Iziet
+        </button>
+      </div>
+    </header>
+
+    <main id="saturs" class="admin-page">
+      <section id="loginPanel" class="admin-login">
+        <header class="section-head">
+          <h2>Admin</h2>
+          <p>Ielogojies, lai redzētu ziņas un pasūtījumus.</p>
+        </header>
+        <form id="loginForm" class="order-contact admin-login-form">
+          <div class="field">
+            <label for="loginEmail">E-pasts</label>
+            <input id="loginEmail" type="email" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label for="loginPassword">Parole</label>
+            <input
+              id="loginPassword"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <div class="order-actions">
+            <button class="btn" type="submit" id="loginSubmit">Ieiet</button>
+          </div>
+          <p class="order-status" id="loginStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="dashPanel" class="admin-dash" hidden>
+        <header class="section-head">
+          <h2>Iesūtītais</h2>
+          <p id="adminWho"></p>
+        </header>
+
+        <div class="admin-tabs" role="tablist">
+          <button
+            type="button"
+            class="admin-tab is-active"
+            role="tab"
+            aria-selected="true"
+            data-tab="orders"
+          >
+            Pasūtījumi <span data-count="orders-new">0</span>
+          </button>
+          <button
+            type="button"
+            class="admin-tab"
+            role="tab"
+            aria-selected="false"
+            data-tab="messages"
+          >
+            Ziņas <span data-count="messages-unread">0</span>
+          </button>
+          <button type="button" class="btn btn-small btn-ghost" id="refreshBtn">
+            Atsvaidzināt
+          </button>
+        </div>
+
+        <div id="ordersPane" class="admin-pane" data-pane="orders">
+          <div class="admin-filters" id="ordersFilters" role="group" aria-label="Pasūtījumu filtri">
+            <button type="button" class="admin-filter is-active" data-filter="all">
+              Visi <span data-filter-count="all">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="new">
+              Jaunie <span data-filter-count="new">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="viewed">
+              Apskatītie <span data-filter-count="viewed">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="made">
+              Izgatavoti <span data-filter-count="made">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="notified">
+              Informētie <span data-filter-count="notified">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="delivered">
+              Atdoti <span data-filter-count="delivered">0</span>
+            </button>
+          </div>
+          <p class="admin-empty" id="ordersEmpty" hidden>Šajā sarakstā pasūtījumu nav.</p>
+          <div id="ordersList" class="admin-list"></div>
+        </div>
+
+        <div id="messagesPane" class="admin-pane" data-pane="messages" hidden>
+          <div class="admin-filters" id="messagesFilters" role="group" aria-label="Ziņu filtri">
+            <button type="button" class="admin-filter is-active" data-filter="all">
+              Visas <span data-filter-count="all">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="unread">
+              Nelasītās <span data-filter-count="unread">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="read">
+              Lasītās <span data-filter-count="read">0</span>
+            </button>
+            <button type="button" class="admin-filter" data-filter="replied">
+              Atbildētās <span data-filter-count="replied">0</span>
+            </button>
+          </div>
+          <p class="admin-empty" id="messagesEmpty" hidden>Šajā sarakstā ziņu nav.</p>
+          <div id="messagesList" class="admin-list"></div>
+        </div>
+
+        <p class="order-status" id="dashStatus" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js?v=2"></script>
+    <script src="js/supabase-client.js?v=2"></script>
+    <script src="js/admin.js?v=9"></script>
+  </body>
+</html>

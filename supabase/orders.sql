@@ -1,0 +1,2 @@
+-- Novecojis — izmanto pilno shēmu:
+--   supabase/schema.sql

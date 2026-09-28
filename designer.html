@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AA3DLab — individuālais dizains</title>
+    <meta
+      name="description"
+      content="Izmēģini vārdu, fontu un krāsu. Pasūtījumu izgatavosim pēc tavām izvēlēm."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/designer.css?v=5" />
+  </head>
+  <body>
+    <header class="app-bar">
+      <h1><a href="index.html">AA3DLab</a> · individuālais dizains</h1>
+      <div class="app-bar-actions">
+        <a
+          class="cart-chip"
+          href="pasutit.html"
+          data-cart-badge
+          data-cart-link
+          hidden
+        >
+          <span data-cart-label>Pasūtījums</span>
+        </a>
+        <p>Zemāk redzamais attēls ir tikai vizuālam ieskatam — ne gatava produkta foto.</p>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="stage">
+        <div class="canvas-wrap">
+          <svg
+            id="preview"
+            viewBox="0 0 120 40"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-label="Piekariņa priekšskatījums"
+          >
+            <path id="layer-base" fill="#1565c0" fill-rule="evenodd" d="" />
+            <path id="layer-text" fill="#5a9de0" fill-rule="evenodd" d="" />
+          </svg>
+        </div>
+        <p class="stage-warn" id="stageFontWarn" hidden></p>
+      </section>
+
+      <aside class="panel">
+        <div class="field">
+          <label for="text">Teksts</label>
+          <input id="text" type="text" maxlength="24" autocomplete="off" />
+          <p class="hint">
+            Vārds/teksts tiks izprintēts tieši tā, kā uzrakstīsi — ar
+            lielajiem/mazajiem burtiem, garumzīmēm, mīkstinājumiem un citiem
+            simboliem.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="font">Fonts</label>
+          <select id="font"></select>
+          <div class="warn" id="fontWarn" hidden></div>
+        </div>
+
+        <div class="field">
+          <span class="opt-label">Krāsa</span>
+          <div
+            class="swatches"
+            id="colorSwatches"
+            role="listbox"
+            aria-label="Krāsa"
+          ></div>
+        </div>
+
+        <div class="field">
+          <span class="opt-label">Izmērs (burta augstums)</span>
+          <div class="seg" id="sizeSeg" role="group" aria-label="Izmērs"></div>
+        </div>
+
+        <div class="field">
+          <span class="opt-label">Piekariņa stiprinājuma vieta</span>
+          <div
+            class="seg"
+            id="holeSeg"
+            role="group"
+            aria-label="Piekariņa stiprinājuma vieta"
+          >
+            <button type="button" data-hole="start">Vārda sākumā</button>
+            <button type="button" data-hole="end">Vārda beigās</button>
+          </div>
+        </div>
+
+        <div class="summary">
+          <h2>Tava izvēle</h2>
+          <dl>
+            <dt>Teksts</dt>
+            <dd id="summaryText">—</dd>
+            <dt>Fonts</dt>
+            <dd id="summaryFont">—</dd>
+            <dt>Krāsa</dt>
+            <dd id="summaryColor">—</dd>
+            <dt>Izmērs</dt>
+            <dd id="summarySize">—</dd>
+            <dt>Aptuvenais garums</dt>
+            <dd id="summaryLength">—</dd>
+            <dt>Stiprinājums</dt>
+            <dd id="summaryHole">—</dd>
+          </dl>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="button" id="orderBtn">Pievienot pasūtījumam</button>
+          <button class="btn btn-ghost" type="button" id="copyBtn">
+            Kopēt izvēli
+          </button>
+        </div>
+        <p class="copy-status" id="copyStatus" aria-live="polite"></p>
+      </aside>
+    </div>
+
+    <script src="vendor/clipper.js"></script>
+    <script src="vendor/opentype.min.js"></script>
+    <script src="js/config.js?v=19"></script>
+    <script src="js/fonts.js?v=7"></script>
+    <script src="js/geometry.js?v=14"></script>
+    <script src="js/cart.js?v=7"></script>
+    <script src="js/preview.js?v=15"></script>
+  </body>
+</html>

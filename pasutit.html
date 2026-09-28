@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <title>AA3DLab — tavs pasūtījums</title>
+    <meta name="description" content="Pārskati pasūtījumu un nosūti AA3DLab." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/landing.css?v=17" />
+  </head>
+  <body>
+    <a class="skip" href="#saturs">Uz saturu</a>
+
+    <header class="top">
+      <a class="brand-mark" href="index.html">AA3DLab</a>
+      <nav class="nav" aria-label="Galvenā">
+        <a href="index.html#piemeri">Piemēri</a>
+        <a href="index.html#kolekcija">Kolekcija</a>
+        <a href="designer.html">Izveido savu</a>
+        <a href="index.html#sazina">Saziņa</a>
+      </nav>
+      <div class="top-actions">
+        <a
+          class="btn btn-small cart-badge"
+          href="pasutit.html"
+          data-cart-badge
+          data-cart-link
+          hidden
+        >
+          <span data-cart-label>Pasūtījums</span>
+        </a>
+      </div>
+    </header>
+
+    <main id="saturs" class="order-page">
+      <header class="section-head">
+        <h2>Tavs pasūtījums</h2>
+        <p>Pārbaudi pasūtījuma informāciju. Ja vēlies, vari pievienot vēl produktus.</p>
+      </header>
+
+      <div id="orderEmpty" class="order-empty" hidden>
+        <p>Pasūtījums vēl tukšs.</p>
+        <div class="cta-row">
+          <a class="btn" href="index.html#kolekcija">Izvēlies gatavo</a>
+          <a class="btn btn-ghost" href="designer.html">Izveido savu</a>
+        </div>
+      </div>
+
+      <form id="orderForm" class="order-form" hidden>
+        <div id="orderLines" class="order-lines" aria-live="polite"></div>
+
+        <div class="order-add">
+          <a class="btn btn-ghost" href="index.html#kolekcija">+ Pievienot gatavo</a>
+          <a class="btn btn-ghost" href="designer.html?from=order">+ Pievienot individuālo</a>
+        </div>
+
+        <fieldset class="order-contact">
+          <legend>Kontakti</legend>
+          <div class="field">
+            <label for="contactName">Vārds, uzvārds <span class="required" aria-hidden="true">*</span></label>
+            <input
+              id="contactName"
+              name="name"
+              type="text"
+              autocomplete="name"
+              required
+              aria-required="true"
+            />
+          </div>
+          <div class="field">
+            <label for="contactPhone">Tālrunis <span class="required" aria-hidden="true">*</span></label>
+            <input
+              id="contactPhone"
+              name="phone"
+              type="tel"
+              autocomplete="tel"
+              required
+              aria-required="true"
+            />
+          </div>
+          <div class="field">
+            <label for="contactEmail">E-pasts <span class="optional">(vēlams)</span></label>
+            <input id="contactEmail" name="email" type="email" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="contactSchoolClass"
+              >Ja esi no Pamatskolas „Rīdze”, ievadi klasi</label
+            >
+            <input
+              id="contactSchoolClass"
+              name="schoolClass"
+              type="text"
+              maxlength="20"
+              placeholder="piemēram, 4.b"
+              autocomplete="off"
+            />
+          </div>
+          <fieldset class="field pay-field">
+            <legend class="pay-legend">Maksājums</legend>
+            <label class="pay-option">
+              <input
+                type="radio"
+                name="payment"
+                value="cash"
+                id="payCash"
+                checked
+              />
+              <span>Maksāšu skaidrā pie saņemšanas</span>
+            </label>
+            <label class="pay-option">
+              <input
+                type="radio"
+                name="payment"
+                value="transfer"
+                id="payTransfer"
+              />
+              <span>Vēlos maksāt ar pārskaitījumu</span>
+            </label>
+            <p class="pay-hint" id="payTransferHint" hidden>
+              Labi — sazināsimies ar tevi par pārskaitījuma veikšanu.
+            </p>
+          </fieldset>
+          <div class="field">
+            <label for="contactNote">Piezīme</label>
+            <textarea
+              id="contactNote"
+              name="note"
+              rows="3"
+              placeholder="Piegāde, jautājumi, komentāri…"
+            ></textarea>
+          </div>
+        </fieldset>
+
+        <p class="order-note">
+          Par saņemšanas vietu un laiku vienosimies.
+        </p>
+
+        <div class="order-actions">
+          <button class="btn" type="submit" id="submitOrder">PASŪTĪT</button>
+          <button class="btn btn-ghost" type="button" id="clearOrder">Notīrīt</button>
+        </div>
+        <p class="order-status" id="orderStatus" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <footer class="foot">
+      <p class="brand-mark">AA3DLab</p>
+      <p>Individuālie piekariņi · Latvija</p>
+      <a
+        class="foot-social"
+        href="https://www.instagram.com/aa3dlab/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Instagram</a
+      >
+      <a href="index.html">Sākums</a>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js?v=1"></script>
+    <script src="js/supabase-client.js?v=1"></script>
+    <script src="js/cart.js?v=7"></script>
+    <script src="js/order.js?v=9"></script>
+  </body>
+</html>

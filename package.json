@@ -1,0 +1,12 @@
+{
+  "name": "aa3dlab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:schema": "node scripts/apply-schema.mjs",
+    "db:admin": "node scripts/ensure-admin.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
