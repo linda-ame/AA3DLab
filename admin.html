@@ -4,7 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#16181c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="AA3DLab" />
     <title>AA3DLab — Admin</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +17,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/landing.css?v=20" />
-    <link rel="stylesheet" href="css/admin.css?v=8" />
+    <link rel="stylesheet" href="css/admin.css?v=10" />
   </head>
   <body class="admin-body">
     <a class="skip" href="#saturs">Uz saturu</a>
@@ -23,6 +28,45 @@
         <span class="admin-nav-label">Admin</span>
       </nav>
       <div class="top-actions">
+        <div class="admin-notify" id="notifyWrap" hidden>
+          <button
+            type="button"
+            class="admin-notify-btn"
+            id="notifyBtn"
+            aria-label="Paziņojumi"
+            aria-expanded="false"
+            aria-controls="notifyPanel"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-6.2V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v4.8L3.2 17.6a1 1 0 0 0 .7 1.7h16.2a1 1 0 0 0 .7-1.7L19 15.8Z"
+              />
+            </svg>
+            <span class="admin-notify-dot" id="notifyDot" hidden></span>
+          </button>
+          <div class="admin-notify-panel" id="notifyPanel" hidden role="dialog" aria-label="Paziņojumu iestatījumi">
+            <p class="admin-notify-title">Paziņojumi</p>
+            <p class="admin-notify-hint" id="notifyPermHint">
+              Ieslēdz paziņojumus, lai saņemtu ziņu par jauniem pasūtījumiem un
+              ziņām arī tad, kad admin ir aizvērts vai pievienots telefona
+              sākuma ekrānam (Share → Add to Home Screen / Pievienot sākuma
+              ekrānam).
+            </p>
+            <button type="button" class="btn btn-small" id="notifyEnableBtn">
+              Ieslēgt paziņojumus
+            </button>
+            <label class="admin-notify-opt">
+              <input type="checkbox" id="notifyOrders" checked />
+              Jauni pasūtījumi
+            </label>
+            <label class="admin-notify-opt">
+              <input type="checkbox" id="notifyMessages" checked />
+              Jaunas ziņas
+            </label>
+            <p class="admin-notify-status" id="notifyStatus" aria-live="polite"></p>
+          </div>
+        </div>
         <button type="button" class="btn btn-small btn-ghost" id="logoutBtn" hidden>
           Iziet
         </button>
@@ -243,8 +287,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js?v=2"></script>
     <script src="js/supabase-client.js?v=2"></script>
+    <script src="js/push-config.js?v=1"></script>
     <script src="js/config.js?v=22"></script>
     <script src="js/pricing.js?v=4"></script>
-    <script src="js/admin.js?v=12"></script>
+    <script src="js/admin.js?v=14"></script>
   </body>
 </html>

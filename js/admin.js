@@ -16,6 +16,15 @@
   const pricingForm = document.getElementById("pricingForm");
   const pricingStatus = document.getElementById("pricingStatus");
   const pricingSaveBtn = document.getElementById("pricingSaveBtn");
+  const notifyWrap = document.getElementById("notifyWrap");
+  const notifyBtn = document.getElementById("notifyBtn");
+  const notifyPanel = document.getElementById("notifyPanel");
+  const notifyDot = document.getElementById("notifyDot");
+  const notifyEnableBtn = document.getElementById("notifyEnableBtn");
+  const notifyOrders = document.getElementById("notifyOrders");
+  const notifyMessages = document.getElementById("notifyMessages");
+  const notifyPermHint = document.getElementById("notifyPermHint");
+  const notifyStatus = document.getElementById("notifyStatus");
 
   let orders = [];
   let messages = [];
@@ -28,6 +37,278 @@
   let myMessageReads = new Set();
   let myOrderViews = new Set();
   let pricingLoaded = false;
+  let knownOrderIds = null;
+  let knownMessageIds = null;
+  let pendingNotifyCount = 0;
+  let pushSubscribed = false;
+
+  const NOTIFY_KEY = "aa3dlab-admin-notify";
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(base64);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+
+  async function ensureServiceWorker() {
+    if (!("serviceWorker" in navigator)) return null;
+    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    await navigator.serviceWorker.ready;
+    return reg;
+  }
+
+  async function getExistingPushSubscription() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+    const reg = await ensureServiceWorker();
+    return reg ? reg.pushManager.getSubscription() : null;
+  }
+
+  async function savePushSubscription(sub) {
+    const client = sb();
+    if (!client || !currentUserId || !sub) return false;
+    const json = sub.toJSON();
+    const endpoint = json.endpoint;
+    const p256dh = json.keys && json.keys.p256dh;
+    const auth = json.keys && json.keys.auth;
+    if (!endpoint || !p256dh || !auth) return false;
+    const { error } = await client.from("push_subscriptions").upsert(
+      {
+        user_id: currentUserId,
+        endpoint,
+        p256dh,
+        auth,
+        user_agent: navigator.userAgent.slice(0, 240),
+      },
+      { onConflict: "endpoint" }
+    );
+    if (error) {
+      console.error(error);
+      setNotifyStatus(
+        "Neizdevās saglabāt push: " + (error.message || "kļūda") +
+          " (palaid push-subscriptions.sql?)",
+        true
+      );
+      return false;
+    }
+    return true;
+  }
+
+  async function removePushSubscription(sub) {
+    const client = sb();
+    if (client && sub) {
+      await client
+        .from("push_subscriptions")
+        .delete()
+        .eq("endpoint", sub.endpoint);
+    }
+    if (sub) await sub.unsubscribe();
+  }
+
+  async function enableWebPush() {
+    if (!("Notification" in window) || !("PushManager" in window)) {
+      throw new Error("Šis pārlūks neatbalsta Web Push.");
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") {
+      throw new Error(
+        perm === "denied"
+          ? "Atļauja liegta pārlūkā."
+          : "Atļauja nav dota."
+      );
+    }
+    const vapid =
+      window.AA3DPushConfig && window.AA3DPushConfig.vapidPublicKey;
+    if (!vapid) throw new Error("Trūkst VAPID public key.");
+
+    const reg = await ensureServiceWorker();
+    if (!reg) throw new Error("Service worker nav pieejams.");
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapid),
+      });
+    }
+    const ok = await savePushSubscription(sub);
+    if (!ok) throw new Error("Neizdevās saglabāt abonementu.");
+    pushSubscribed = true;
+    return sub;
+  }
+
+  async function refreshPushState() {
+    try {
+      const sub = await getExistingPushSubscription();
+      pushSubscribed = Boolean(sub);
+      if (sub && currentUserId) await savePushSubscription(sub);
+    } catch (err) {
+      console.warn(err);
+      pushSubscribed = false;
+    }
+    syncNotifyUi();
+  }
+
+  function loadNotifyPrefs() {
+    try {
+      const raw = localStorage.getItem(NOTIFY_KEY);
+      if (!raw) return { orders: true, messages: true };
+      const parsed = JSON.parse(raw);
+      return {
+        orders: parsed.orders !== false,
+        messages: parsed.messages !== false,
+      };
+    } catch {
+      return { orders: true, messages: true };
+    }
+  }
+
+  function saveNotifyPrefs(prefs) {
+    localStorage.setItem(NOTIFY_KEY, JSON.stringify(prefs));
+  }
+
+  function getNotifyPrefs() {
+    return {
+      orders: notifyOrders ? notifyOrders.checked : true,
+      messages: notifyMessages ? notifyMessages.checked : true,
+    };
+  }
+
+  function setNotifyStatus(msg, isError) {
+    if (!notifyStatus) return;
+    notifyStatus.textContent = msg || "";
+    notifyStatus.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function syncNotifyUi() {
+    const prefs = loadNotifyPrefs();
+    if (notifyOrders) notifyOrders.checked = prefs.orders;
+    if (notifyMessages) notifyMessages.checked = prefs.messages;
+
+    const supported =
+      typeof Notification !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window;
+    const perm = typeof Notification !== "undefined" ? Notification.permission : "denied";
+
+    if (notifyEnableBtn) {
+      const fullyOn = supported && perm === "granted" && pushSubscribed;
+      notifyEnableBtn.hidden = fullyOn;
+      notifyEnableBtn.disabled = !supported || perm === "denied";
+      if (perm === "denied") {
+        notifyEnableBtn.textContent = "Bloķēts pārlūkā";
+      } else if (pushSubscribed && perm === "granted") {
+        notifyEnableBtn.textContent = "Paziņojumi ieslēgti";
+      } else {
+        notifyEnableBtn.textContent = "Ieslēgt paziņojumus";
+      }
+    }
+
+    if (notifyPermHint) {
+      if (!supported) {
+        notifyPermHint.textContent =
+          "Šis pārlūks neatbalsta Web Push. iPhone: pievieno Admin sākuma ekrānam (Safari → Share → Add to Home Screen) un ieslēdz paziņojumus no ikonas.";
+      } else if (perm === "granted" && pushSubscribed) {
+        notifyPermHint.textContent =
+          "Paziņojumi ieslēgti arī ar aizvērtu cilni / no home screen. Izvēlies, par ko vēlies saņemt ziņu.";
+      } else if (perm === "denied") {
+        notifyPermHint.textContent =
+          "Pārlūks ir nobloķējis paziņojumus. Atļauj tos vietnes iestatījumos (vai home screen app iestatījumos).";
+      } else {
+        notifyPermHint.textContent =
+          "Ieslēdz paziņojumus, lai saņemtu ziņu par jauniem pasūtījumiem un ziņām arī tad, kad admin ir aizvērts vai pievienots telefona sākuma ekrānam (Safari → Share → Add to Home Screen).";
+      }
+    }
+
+    if (notifyDot) notifyDot.hidden = pendingNotifyCount <= 0;
+  }
+
+  function openNotifyPanel(open) {
+    if (!notifyPanel || !notifyBtn) return;
+    notifyPanel.hidden = !open;
+    notifyBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      pendingNotifyCount = 0;
+      if (notifyDot) notifyDot.hidden = true;
+      syncNotifyUi();
+    }
+  }
+
+  function canNotifyBrowser() {
+    return typeof Notification !== "undefined" && Notification.permission === "granted";
+  }
+
+  function fireBrowserNotify(title, body, tag) {
+    if (!canNotifyBrowser()) return;
+    try {
+      const n = new Notification(title, {
+        body,
+        tag: tag || undefined,
+        renotify: Boolean(tag),
+      });
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
+  function notifyNewOrders(rows) {
+    const prefs = getNotifyPrefs();
+    if (!prefs.orders || !rows.length) return;
+    pendingNotifyCount += rows.length;
+    if (notifyDot) notifyDot.hidden = false;
+    // Ja Web Push aktīvs, serveris arī sūta — klientā rādam vienmēr, lai būtu uzreiz;
+    // vienāds tag aizstāj dublikātu.
+    if (rows.length === 1) {
+      const o = rows[0];
+      const who = o.name || "Jauns klients";
+      const nr = o.order_number ? `#${o.order_number}` : "pasūtījums";
+      fireBrowserNotify("Jauns pasūtījums", `${nr} · ${who}`, "order-" + o.id);
+    } else {
+      fireBrowserNotify(
+        "Jauni pasūtījumi",
+        `${rows.length} jauni pasūtījumi`,
+        "orders-batch"
+      );
+    }
+  }
+
+  function notifyNewMessages(rows) {
+    const prefs = getNotifyPrefs();
+    if (!prefs.messages || !rows.length) return;
+    pendingNotifyCount += rows.length;
+    if (notifyDot) notifyDot.hidden = false;
+    if (rows.length === 1) {
+      const m = rows[0];
+      const who = m.name || "Jauna ziņa";
+      fireBrowserNotify("Jauna ziņa", who, "message-" + m.id);
+    } else {
+      fireBrowserNotify(
+        "Jaunas ziņas",
+        `${rows.length} jaunas ziņas`,
+        "messages-batch"
+      );
+    }
+  }
+
+  function detectAndNotify(nextOrders, nextMessages) {
+    if (knownOrderIds === null || knownMessageIds === null) {
+      knownOrderIds = new Set(nextOrders.map((r) => r.id));
+      knownMessageIds = new Set(nextMessages.map((r) => r.id));
+      return;
+    }
+    const newOrders = nextOrders.filter((r) => !knownOrderIds.has(r.id));
+    const newMessages = nextMessages.filter((r) => !knownMessageIds.has(r.id));
+    newOrders.forEach((r) => knownOrderIds.add(r.id));
+    newMessages.forEach((r) => knownMessageIds.add(r.id));
+    if (newOrders.length) notifyNewOrders(newOrders);
+    if (newMessages.length) notifyNewMessages(newMessages);
+  }
 
   function isTypingInDash() {
     const el = document.activeElement;
@@ -162,13 +443,21 @@
     if (loginPanel) loginPanel.hidden = false;
     if (dashPanel) dashPanel.hidden = true;
     if (logoutBtn) logoutBtn.hidden = true;
+    if (notifyWrap) notifyWrap.hidden = true;
+    openNotifyPanel(false);
+    knownOrderIds = null;
+    knownMessageIds = null;
+    pendingNotifyCount = 0;
   }
 
   function showLoggedIn(user) {
     if (loginPanel) loginPanel.hidden = true;
     if (dashPanel) dashPanel.hidden = false;
     if (logoutBtn) logoutBtn.hidden = false;
+    if (notifyWrap) notifyWrap.hidden = false;
     if (adminWho) adminWho.textContent = user?.email || "";
+    syncNotifyUi();
+    refreshPushState();
   }
 
   function filterMessages(rows) {
@@ -634,6 +923,7 @@
         is_read: myMessageReads.has(r.id),
         is_replied: Boolean(r.is_replied),
       }));
+      detectAndNotify(orders, messages);
       if (isTypingInDash()) {
         updateFilterCounts();
         if (!quiet) setDashStatus("");
@@ -751,11 +1041,61 @@
 
   refreshBtn.addEventListener("click", () => loadData());
 
+  if (notifyBtn) {
+    notifyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openNotifyPanel(notifyPanel?.hidden !== false);
+    });
+  }
+
+  if (notifyEnableBtn) {
+    notifyEnableBtn.addEventListener("click", async () => {
+      notifyEnableBtn.disabled = true;
+      setNotifyStatus("Ieslēdz…");
+      try {
+        await enableWebPush();
+        syncNotifyUi();
+        setNotifyStatus("Paziņojumi ieslēgti (arī ar aizvērtu admin).");
+        fireBrowserNotify(
+          "AA3DLab Admin",
+          "Paziņojumi darbojas.",
+          "aa3dlab-notify-test"
+        );
+      } catch (err) {
+        syncNotifyUi();
+        setNotifyStatus(err.message || "Neizdevās ieslēgt.", true);
+      } finally {
+        notifyEnableBtn.disabled = false;
+        syncNotifyUi();
+      }
+    });
+  }
+
+  function onNotifyPrefChange() {
+    saveNotifyPrefs(getNotifyPrefs());
+    setNotifyStatus("Saglabāts.");
+  }
+  if (notifyOrders) notifyOrders.addEventListener("change", onNotifyPrefChange);
+  if (notifyMessages) notifyMessages.addEventListener("change", onNotifyPrefChange);
+
+  document.addEventListener("click", (e) => {
+    if (!notifyWrap || notifyWrap.hidden || !notifyPanel || notifyPanel.hidden) {
+      return;
+    }
+    if (!notifyWrap.contains(e.target)) openNotifyPanel(false);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") openNotifyPanel(false);
+  });
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && dashPanel && !dashPanel.hidden) {
       loadData({ quiet: true });
     }
   });
+
+  syncNotifyUi();
 
   document.querySelectorAll(".admin-tab[data-tab]").forEach((tab) => {
     tab.addEventListener("click", () => {
