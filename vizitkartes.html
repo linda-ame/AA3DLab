@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AA3DLab — vizītkartes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #000;
+        --muted: #333;
+        --font-display: "Syne", sans-serif;
+        --font-body: "Figtree", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #bbb;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      .screen-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: #16181c;
+        color: #e8eaed;
+        font-size: 0.9rem;
+      }
+
+      .screen-bar strong {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .screen-bar span.hint {
+        opacity: 0.75;
+        font-size: 0.82rem;
+      }
+
+      .screen-bar button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 4px;
+        padding: 0.55rem 1.1rem;
+        background: #e8eaed;
+        color: #16181c;
+        cursor: pointer;
+      }
+
+      .sheet-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      .sheet {
+        width: 210mm;
+        height: 297mm;
+        background: #fff;
+        position: relative;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 0;
+        padding: 0;
+        border: 0.3mm solid #000;
+      }
+
+      .tag {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+        background: #fff;
+        margin: 0;
+        padding: 6mm 3.5mm 5mm;
+        border: 0;
+        border-right: 0.3mm solid #000;
+        border-bottom: 0.3mm solid #000;
+      }
+
+      .tag:nth-child(4n) {
+        border-right: 0;
+      }
+
+      .tag:nth-child(n + 9) {
+        border-bottom: 0;
+      }
+
+      .brand {
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        margin: 0;
+        font-size: 5.5mm;
+      }
+
+      .tagline {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        margin: 5mm 0 0;
+        font-size: 3mm;
+        max-width: 15ch;
+      }
+
+      .qr {
+        width: 32mm;
+        height: 32mm;
+        margin: 4.5mm 0 3mm;
+        background: #fff;
+        padding: 0;
+        display: block;
+        flex-shrink: 0;
+      }
+
+      .url {
+        margin: 0;
+        font-weight: 700;
+        font-size: 3mm;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+        word-break: break-all;
+      }
+
+      .ig {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.2mm;
+        margin: 2.2mm 0 0;
+        font-weight: 600;
+        font-size: 2.6mm;
+        color: var(--ink);
+        line-height: 1;
+      }
+
+      .ig svg {
+        width: 3.2mm;
+        height: 3.2mm;
+        flex-shrink: 0;
+        display: block;
+      }
+
+      .maker {
+        width: 100%;
+        margin-top: auto;
+        padding-top: 3.5mm;
+        border-top: 0.3mm solid #000;
+        text-align: center;
+      }
+
+      .maker-name {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 3.4mm;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+      }
+
+      .maker-class {
+        margin: 0.8mm 0 0;
+        font-size: 2.6mm;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      @media print {
+        .screen-bar {
+          display: none !important;
+        }
+
+        html,
+        body {
+          background: none;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .sheet-wrap {
+          padding: 0;
+          gap: 0;
+        }
+
+        .sheet {
+          box-shadow: none;
+          page-break-after: always;
+          break-after: page;
+        }
+
+        .sheet:last-child {
+          page-break-after: auto;
+          break-after: auto;
+        }
+
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+      }
+
+      @media screen and (max-width: 900px) {
+        .sheet {
+          width: min(210mm, 100%);
+          height: auto;
+          aspect-ratio: 210 / 297;
+        }
+
+        .brand {
+          font-size: clamp(0.7rem, 2.4vw, 5mm);
+        }
+
+        .tagline {
+          font-size: clamp(0.45rem, 1.4vw, 2.7mm);
+        }
+
+        .qr {
+          width: clamp(3.5rem, 14vw, 32mm);
+          height: clamp(3.5rem, 14vw, 32mm);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen-bar">
+      <div>
+        <strong>AA3DLab</strong> · 12× vizītkartes (A4 · melnbalts)
+        <span class="hint"> · griez pa līnijām · malas saskaras</span>
+      </div>
+      <button type="button" onclick="window.print()">Drukāt / saglabāt PDF</button>
+    </div>
+
+    <div class="sheet-wrap">
+      <article class="sheet" aria-label="Vizītkartes — 1. lapa"></article>
+      <article class="sheet" aria-label="Vizītkartes — 2. lapa"></article>
+    </div>
+
+    <template id="tag-tpl">
+      <div class="tag">
+        <p class="brand">AA3DLab</p>
+        <p class="tagline">Pasūti savu piekariņu</p>
+        <img
+          class="qr"
+          src="images/posters/qr.png"
+          alt="QR kods uz AA3DLab"
+          width="1024"
+          height="1024"
+        />
+        <p class="url">aa3dlab.vercel.app</p>
+        <p class="ig">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 1 0 12 7.3ZM12 15.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4Zm5.35-7.95a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0ZM12 2.5c-2.55 0-2.87.01-3.87.06-2.6.12-4.01 1.52-4.13 4.13-.05 1-.06 1.32-.06 3.87s.01 2.87.06 3.87c.12 2.6 1.53 4.01 4.13 4.13 1 .05 1.32.06 3.87.06s2.87-.01 3.87-.06c2.6-.12 4.01-1.53 4.13-4.13.05-1 .06-1.32.06-3.87s-.01-2.87-.06-3.87c-.12-2.61-1.53-4.01-4.13-4.13-1-.05-1.32-.06-3.87-.06Zm0 1.5c2.5 0 2.8.01 3.78.05 1.95.09 2.86 1.01 2.95 2.95.05.98.05 1.28.05 3.78s0 2.8-.05 3.78c-.09 1.94-1 2.86-2.95 2.95-.98.05-1.28.05-3.78.05s-2.8 0-3.78-.05c-1.95-.09-2.86-1.01-2.95-2.95-.05-.98-.05-1.28-.05-3.78s0-2.8.05-3.78c.09-1.94 1-2.86 2.95-2.95C9.2 4.01 9.5 4 12 4Z"
+            />
+          </svg>
+          <span>@aa3dlab</span>
+        </p>
+        <div class="maker">
+          <p class="maker-name">Armands</p>
+          <p class="maker-class">4.b</p>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      (function () {
+        var tpl = document.getElementById("tag-tpl");
+        var sheets = document.querySelectorAll(".sheet");
+        sheets.forEach(function (sheet) {
+          for (var i = 0; i < 12; i++) {
+            sheet.appendChild(tpl.content.cloneNode(true));
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
