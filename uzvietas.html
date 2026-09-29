@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AA3DLab — pasūtījuma forma (papīrs)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #16181c;
+        --muted: #4a5360;
+        --line: rgba(22, 24, 28, 0.35);
+        --font-display: "Syne", sans-serif;
+        --font-body: "Figtree", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #9aa3ad;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      .screen-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: rgba(22, 24, 28, 0.92);
+        color: #e8eaed;
+        font-size: 0.9rem;
+      }
+
+      .screen-bar strong {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .screen-bar button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 4px;
+        padding: 0.55rem 1.1rem;
+        background: #c9a84a;
+        color: #16181c;
+        cursor: pointer;
+      }
+
+      .sheet-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      .sheet {
+        width: 297mm;
+        height: 210mm;
+        background: #fff;
+        color: #000;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(22, 24, 28, 0.28);
+        display: grid;
+        grid-template-rows: auto 1fr;
+        padding: 10mm 12mm 9mm;
+        gap: 5mm;
+      }
+
+      .sheet-head {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: end;
+        gap: 6mm;
+        border-bottom: 2px solid #000;
+        padding-bottom: 3.5mm;
+      }
+
+      .sheet-head-right {
+        text-align: right;
+        justify-self: end;
+      }
+
+      .nr-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 2.5mm;
+        min-width: 42mm;
+        padding: 2mm 3mm 2.5mm;
+        border: 2px solid #000;
+        border-radius: 1.5mm;
+        background: #fff;
+      }
+
+      .nr-label {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 4.5mm;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        padding-bottom: 1mm;
+      }
+
+      .nr-line {
+        flex: 1;
+        min-width: 22mm;
+        border-bottom: 2px solid #000;
+        min-height: 8mm;
+      }
+
+      .brand {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        font-size: 9mm;
+        line-height: 0.9;
+      }
+
+      .head-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-size: 5.5mm;
+        line-height: 1;
+      }
+
+      .head-sub {
+        margin: 1.5mm 0 0;
+        font-size: 3.2mm;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 0 10mm;
+        min-height: 0;
+      }
+
+      .col {
+        display: flex;
+        flex-direction: column;
+        gap: 4.2mm;
+      }
+
+      .block-label {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 3.6mm;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 1.8mm;
+      }
+
+      .field-label {
+        margin: 0;
+        font-weight: 700;
+        font-size: 3.4mm;
+      }
+
+      .hint {
+        margin: 0;
+        font-size: 2.8mm;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .write-line {
+        border-bottom: 1.5px solid #000;
+        min-height: 9mm;
+      }
+
+      .write-line--text {
+        min-height: 12mm;
+        border: 1.5px solid #000;
+        border-radius: 1mm;
+        background: #fff;
+      }
+
+      .choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2mm 4mm;
+      }
+
+      .choice {
+        display: flex;
+        align-items: center;
+        gap: 2.5mm;
+        font-weight: 600;
+        font-size: 3.5mm;
+        padding: 1.8mm 2.5mm;
+        border: 1.25px solid #000;
+        border-radius: 1mm;
+        background: #fff;
+      }
+
+      .box {
+        width: 5mm;
+        height: 5mm;
+        border: 1.75px solid #000;
+        border-radius: 0.4mm;
+        flex-shrink: 0;
+        background: #fff;
+      }
+
+      .size-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2.2mm;
+      }
+
+      .size-row {
+        display: grid;
+        grid-template-columns: 5.5mm 12mm 1fr;
+        align-items: center;
+        gap: 2.5mm;
+        padding: 1.8mm 2.5mm;
+        border: 1.25px solid #000;
+        border-radius: 1mm;
+        background: #fff;
+      }
+
+      .size-row .box {
+        width: 5.5mm;
+        height: 5.5mm;
+      }
+
+      .size-letter {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 5mm;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+
+      .size-price {
+        justify-self: end;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 4.2mm;
+        letter-spacing: -0.02em;
+      }
+
+      .addon-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2mm;
+      }
+
+      .addon-row {
+        display: flex;
+        align-items: center;
+        gap: 2.5mm;
+        font-weight: 600;
+        font-size: 3.4mm;
+      }
+
+      .addon-row .plus {
+        margin-left: auto;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 3.6mm;
+        white-space: nowrap;
+      }
+
+      .total-block {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: end;
+        gap: 3mm;
+        padding: 3.5mm 4mm;
+        border: 2px solid #000;
+        border-radius: 1.5mm;
+        background: #fff;
+      }
+
+      .total-block strong {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 4.2mm;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        padding-bottom: 1.5mm;
+      }
+
+      .total-line {
+        border-bottom: 2px solid #000;
+        min-height: 9mm;
+      }
+
+      .total-eur {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 4.5mm;
+        padding-bottom: 1.5mm;
+      }
+
+      .paid-block {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+        padding: 3.5mm 4mm;
+        border: 2px solid #000;
+        border-radius: 1.5mm;
+        background: #fff;
+      }
+
+      .paid-block .box {
+        width: 6mm;
+        height: 6mm;
+      }
+
+      .paid-block strong {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 4mm;
+        letter-spacing: -0.02em;
+      }
+
+      .office {
+        margin: 0;
+        font-size: 2.6mm;
+        font-weight: 600;
+        color: #333;
+      }
+
+      @media print {
+        .screen-bar {
+          display: none !important;
+        }
+
+        html,
+        body {
+          background: none;
+          color: #000;
+        }
+
+        .sheet-wrap {
+          padding: 0;
+          gap: 0;
+        }
+
+        .sheet {
+          box-shadow: none;
+          page-break-after: always;
+        }
+
+        .sheet:last-child {
+          page-break-after: auto;
+        }
+
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+      }
+
+      @media screen and (max-width: 1100px) {
+        .sheet {
+          width: min(297mm, 100%);
+          height: auto;
+          aspect-ratio: 297 / 210;
+          padding: 3.5%;
+        }
+
+        .brand {
+          font-size: clamp(1.4rem, 4vw, 9mm);
+        }
+
+        .head-title {
+          font-size: clamp(0.95rem, 2.4vw, 5.5mm);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen-bar">
+      <div>
+        <strong>AA3DLab</strong> · pasūtījuma forma (A4 ainava · melnbaltai drukai)
+      </div>
+      <button type="button" onclick="window.print()">Drukāt / saglabāt PDF</button>
+    </div>
+
+    <div class="sheet-wrap" id="sheets"></div>
+
+    <template id="formTemplate">
+      <article class="sheet" aria-label="Pasūtījuma forma">
+        <header class="sheet-head">
+          <div>
+            <p class="brand">AA3DLab</p>
+            <p class="head-sub">Individuālie piekariņi</p>
+          </div>
+          <div class="nr-box" aria-label="Pasūtījuma numurs">
+            <p class="nr-label">Nr.</p>
+            <div class="nr-line" aria-hidden="true"></div>
+          </div>
+          <div class="sheet-head-right">
+            <p class="head-title">Pasūtījuma forma</p>
+          </div>
+        </header>
+
+        <div class="form-grid">
+          <div class="col">
+            <p class="block-label">Piekariņš</p>
+
+            <div class="field">
+              <p class="field-label">Teksts uz piekariņa</p>
+              <div class="write-line--text" aria-hidden="true"></div>
+              <p class="hint">Raksti skaidri, lieliem burtiem</p>
+            </div>
+
+            <div class="field">
+              <p class="field-label">Krāsa — ieķeksē</p>
+              <div class="choices">
+                <span class="choice">
+                  <span class="box" aria-hidden="true"></span>
+                  Zils
+                </span>
+                <span class="choice">
+                  <span class="box" aria-hidden="true"></span>
+                  Gaiši pelēks
+                </span>
+                <span class="choice">
+                  <span class="box" aria-hidden="true"></span>
+                  Karmīnsarkans
+                </span>
+                <span class="choice">
+                  <span class="box" aria-hidden="true"></span>
+                  Dzeltens
+                </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <p class="field-label">Izmērs — ieķeksē vienu</p>
+              <div class="size-list">
+                <div class="size-row">
+                  <span class="box" aria-hidden="true"></span>
+                  <span class="size-letter">S</span>
+                  <span class="size-price">2 €</span>
+                </div>
+                <div class="size-row">
+                  <span class="box" aria-hidden="true"></span>
+                  <span class="size-letter">M</span>
+                  <span class="size-price">2,50 €</span>
+                </div>
+                <div class="size-row">
+                  <span class="box" aria-hidden="true"></span>
+                  <span class="size-letter">L</span>
+                  <span class="size-price">3,50 €</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <p class="field-label">Papildus — ieķeksē, ja vajag</p>
+              <div class="addon-list">
+                <div class="addon-row">
+                  <span class="box" aria-hidden="true"></span>
+                  <span>Karabīne</span>
+                  <span class="plus">+0,50 €</span>
+                </div>
+                <div class="addon-row">
+                  <span class="box" aria-hidden="true"></span>
+                  <span>Garš teksts (virs 10 burtiem)</span>
+                  <span class="plus">+0,50 €</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col">
+            <p class="block-label">Kontakti</p>
+
+            <div class="field">
+              <p class="field-label">Vārds, uzvārds</p>
+              <div class="write-line" aria-hidden="true"></div>
+            </div>
+
+            <div class="field">
+              <p class="field-label">Tālrunis</p>
+              <div class="write-line" aria-hidden="true"></div>
+            </div>
+
+            <div class="field">
+              <p class="field-label">E-pasts</p>
+              <div class="write-line" aria-hidden="true"></div>
+            </div>
+
+            <div class="field">
+              <p class="field-label">Klase (ja no «Rīdzes»)</p>
+              <div class="write-line" aria-hidden="true"></div>
+            </div>
+
+            <div class="total-block">
+              <strong>Kopā</strong>
+              <div class="total-line" aria-hidden="true"></div>
+              <span class="total-eur">€</span>
+            </div>
+
+            <div class="paid-block">
+              <span class="box" aria-hidden="true"></span>
+              <strong>Ir samaksāts</strong>
+            </div>
+
+            <p class="office">Aizpilda AA3DLab · datums ________</p>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script>
+      const root = document.getElementById("sheets");
+      const tpl = document.getElementById("formTemplate");
+      for (let i = 0; i < 2; i++) {
+        root.appendChild(tpl.content.cloneNode(true));
+      }
+    </script>
+  </body>
+</html>

@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/landing.css?v=21" />
+    <link rel="stylesheet" href="css/landing.css?v=25" />
   </head>
   <body>
     <a class="skip" href="#saturs">Uz saturu</a>
@@ -39,7 +39,7 @@
     </header>
 
     <main id="saturs" class="order-page">
-      <header class="section-head">
+      <header class="section-head" id="orderHead">
         <h2>Tavs pasūtījums</h2>
         <p>Pārbaudi pasūtījuma informāciju. Ja vēlies, vari pievienot vēl produktus.</p>
       </header>
@@ -49,6 +49,19 @@
         <div class="cta-row">
           <a class="btn" href="index.html#kolekcija">Izvēlies gatavo</a>
           <a class="btn btn-ghost" href="designer.html">Izveido savu</a>
+        </div>
+      </div>
+
+      <div id="orderSuccess" class="order-success" hidden>
+        <h2 class="order-success-title">Paldies!</h2>
+        <p class="order-success-lead">Tavs pasūtījums ir pieņemts.</p>
+        <p class="order-success-number" id="orderSuccessNumber" hidden></p>
+        <p class="order-success-note">
+          Sazināsimies tiklīdz pasūtījums būs gatavs. Saglabā numuru, ja vajadzēs atsaukties uz pasūtījumu.
+        </p>
+        <div class="order-success-summary" id="orderSuccessSummary"></div>
+        <div class="cta-row">
+          <a class="btn" href="index.html">Uz sākumu</a>
         </div>
       </div>
 
@@ -169,6 +182,6 @@
     <script src="js/config.js?v=22"></script>
     <script src="js/pricing.js?v=4"></script>
     <script src="js/cart.js?v=8"></script>
-    <script src="js/order.js?v=11"></script>
+    <script src="js/order.js?v=13"></script>
   </body>
 </html>

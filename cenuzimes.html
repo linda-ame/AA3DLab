@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AA3DLab — Piekariņi RĪDZE · cenas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #16181c;
+        --muted: #4a5360;
+        --font-display: "Syne", sans-serif;
+        --font-body: "Figtree", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #9aa3ad;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      .screen-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: rgba(22, 24, 28, 0.92);
+        color: #e8eaed;
+        font-size: 0.9rem;
+      }
+
+      .screen-bar strong {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .screen-bar button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 4px;
+        padding: 0.55rem 1.1rem;
+        background: #c9a84a;
+        color: #16181c;
+        cursor: pointer;
+      }
+
+      .sheet-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      .sheet {
+        width: 210mm;
+        height: 297mm;
+        background: #e6eaee;
+        color: var(--ink);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(22, 24, 28, 0.28);
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        padding: 18mm 18mm 16mm;
+      }
+
+      .sheet-bg-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 58% 32%;
+        opacity: 0.42;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .sheet-wash {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(230, 234, 238, 0.96) 0%,
+          rgba(230, 234, 238, 0.82) 28%,
+          rgba(230, 234, 238, 0.55) 58%,
+          rgba(230, 234, 238, 0.78) 100%
+        );
+      }
+
+      .sheet > *:not(.sheet-bg-photo):not(.sheet-wash) {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand {
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        margin: 0;
+        font-size: 18mm;
+      }
+
+      .headline {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin: 5mm 0 0;
+        font-size: 9mm;
+      }
+
+      .sample {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 10mm 0 4mm;
+      }
+
+      .sample img {
+        width: 100%;
+        max-height: 52mm;
+        object-fit: contain;
+        display: block;
+      }
+
+      .price-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0;
+        margin: 0;
+      }
+
+      .price-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8mm;
+        align-items: center;
+        padding: 11mm 0;
+        border-top: 1px solid rgba(22, 24, 28, 0.16);
+      }
+
+      .price-row:last-child {
+        border-bottom: 1px solid rgba(22, 24, 28, 0.16);
+      }
+
+      .price-size {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 28mm;
+        letter-spacing: -0.05em;
+        line-height: 0.8;
+      }
+
+      .price-amount {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 20mm;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      @media print {
+        .screen-bar {
+          display: none !important;
+        }
+
+        html,
+        body {
+          background: none;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .sheet-wrap {
+          padding: 0;
+          gap: 0;
+        }
+
+        .sheet {
+          box-shadow: none;
+        }
+
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+      }
+
+      @media screen and (max-width: 900px) {
+        .sheet {
+          width: min(210mm, 100%);
+          height: auto;
+          aspect-ratio: 210 / 297;
+          padding: 7%;
+        }
+
+        .brand {
+          font-size: clamp(2rem, 9vw, 18mm);
+        }
+
+        .headline {
+          font-size: clamp(1.25rem, 4.5vw, 9mm);
+        }
+
+        .price-size {
+          font-size: clamp(2.5rem, 12vw, 28mm);
+        }
+
+        .price-amount {
+          font-size: clamp(1.85rem, 9vw, 20mm);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen-bar">
+      <div>
+        <strong>AA3DLab</strong> · Piekariņi „RĪDZE” · cenas
+      </div>
+      <button type="button" onclick="window.print()">Drukāt / saglabāt PDF</button>
+    </div>
+
+    <div class="sheet-wrap">
+      <article class="sheet" aria-label="Piekariņi RĪDZE cenas">
+        <img
+          class="sheet-bg-photo"
+          src="images/products/backpack-lifestyle.jpg"
+          alt=""
+          width="768"
+          height="1024"
+        />
+        <div class="sheet-wash" aria-hidden="true"></div>
+        <header>
+          <p class="brand">AA3DLab</p>
+          <h1 class="headline">Piekariņi „RĪDZE”</h1>
+        </header>
+
+        <div class="sample">
+          <img
+            src="images/posters/ridze-price-crop.jpg"
+            alt="RĪDZE piekariņš"
+            width="960"
+            height="344"
+          />
+        </div>
+
+        <div class="price-list">
+          <div class="price-row">
+            <div class="price-size">S</div>
+            <div class="price-amount">1,50 €</div>
+          </div>
+          <div class="price-row">
+            <div class="price-size">M</div>
+            <div class="price-amount">2 €</div>
+          </div>
+          <div class="price-row">
+            <div class="price-size">L</div>
+            <div class="price-amount">3 €</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>

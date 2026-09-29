@@ -341,7 +341,12 @@
       const open = openId.orders === row.id;
       const items = Array.isArray(row.items) ? row.items : [];
       const pay =
-        row.payment_method === "transfer" ? "Pārskaitījums" : "Skaidrā / skola";
+        row.payment_method === "transfer"
+          ? "Pārskaitījums"
+          : row.payment_method === "paid"
+            ? "Samaksāts"
+            : "Skaidrā / skola";
+
       const card = document.createElement("article");
       card.className =
         "admin-card" +
@@ -361,6 +366,7 @@
         </button>
         <div class="admin-detail" ${open ? "" : "hidden"}>
           <dl class="admin-dl">
+            <div><dt>Nr.</dt><dd data-f="number"></dd></div>
             <div><dt>Vārds</dt><dd data-f="name"></dd></div>
             <div><dt>Tālrunis</dt><dd data-f="phone"></dd></div>
             <div><dt>E-pasts</dt><dd data-f="email"></dd></div>
@@ -415,7 +421,9 @@
           </div>
         </div>
       `;
-      card.querySelector("h3").textContent = row.name || "—";
+      card.querySelector("h3").textContent = row.order_number
+        ? `#${row.order_number} · ${row.name || "—"}`
+        : row.name || "—";
       card.querySelector(".admin-meta").textContent = [
         fmtDate(row.created_at),
         row.phone,
@@ -424,6 +432,9 @@
         .filter(Boolean)
         .join(" · ");
       card.querySelector(".admin-preview").textContent = preview;
+      card.querySelector('[data-f="number"]').textContent = row.order_number
+        ? String(row.order_number)
+        : "—";
       card.querySelector('[data-f="name"]').textContent = row.name || "—";
       card.querySelector('[data-f="phone"]').textContent = row.phone || "—";
       card.querySelector('[data-f="email"]').textContent = row.email || "—";

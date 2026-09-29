@@ -299,7 +299,7 @@
       .p3 {
         display: grid;
         grid-template-rows: auto 1fr auto;
-        padding: 16mm 16mm 14mm;
+        padding: 12mm 16mm 11mm;
         height: 100%;
         text-align: center;
       }
@@ -319,13 +319,21 @@
       }
 
       .p3 .brand {
-        font-size: 18mm;
+        font-size: 20mm;
       }
 
       .p3 .headline {
+        margin: 4mm auto 0;
+        font-size: 6.5mm;
+        max-width: 22ch;
+        line-height: 1.12;
+      }
+
+      .p3 .lede {
         margin: 3mm auto 0;
-        font-size: 8mm;
-        max-width: none;
+        font-size: 4mm;
+        max-width: 40ch;
+        color: var(--muted);
       }
 
       .qr-hero {
@@ -333,44 +341,43 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5mm;
+        gap: 0;
         min-height: 0;
+        padding: 4mm 0 2mm;
       }
 
-      .qr-hero img {
-        width: 128mm;
-        height: 128mm;
+      .qr-hero > img {
+        width: 112mm;
+        height: 112mm;
         max-width: 100%;
         background: #fff;
-        padding: 5mm;
+        padding: 4mm;
         display: block;
         box-sizing: border-box;
-      }
-
-      .qr-hero .scan-hint {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 5mm;
-        letter-spacing: -0.02em;
-        margin: 0;
+        flex-shrink: 0;
       }
 
       .p3-foot {
         border-top: 1px solid rgba(22, 24, 28, 0.14);
         padding-top: 5mm;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3mm;
+      }
+
+      .p3-foot .sample {
+        width: 100%;
+        max-height: 28mm;
+        object-fit: contain;
+        display: block;
       }
 
       .p3-foot .url {
         margin: 0;
         font-weight: 600;
-        font-size: 4.2mm;
+        font-size: 3.8mm;
         color: var(--brass-ink);
-      }
-
-      .p3-foot p {
-        margin: 2mm 0 0;
-        font-size: 3.6mm;
-        color: var(--muted);
       }
 
       @media print {
@@ -567,7 +574,10 @@
         <div class="sheet-wash" aria-hidden="true"></div>
         <header>
           <p class="brand">AA3DLab</p>
-          <h1 class="headline">Personalizēti piekariņi</h1>
+          <h1 class="headline">Izveido pats savu 3D piekariņu</h1>
+          <p class="lede">
+            Pasūti šeit vai apmeklē mūsu mājaslapu un radi savu dizainu pats.
+          </p>
         </header>
 
         <div class="qr-hero">
@@ -577,12 +587,17 @@
             width="1024"
             height="1024"
           />
-          <p class="scan-hint">Noskenē un atver mājaslapu</p>
         </div>
 
         <div class="p3-foot">
+          <img
+            class="sample"
+            src="images/posters/sample-armands.jpg"
+            alt="Paraugs ARMANDS"
+            width="1024"
+            height="258"
+          />
           <p class="url">aa3dlab.vercel.app</p>
-          <p>Pasūti uz vietas vai radi pats savu dizainu.</p>
         </div>
       </article>
     </div>

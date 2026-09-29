@@ -8,6 +8,10 @@
   const totalEl = document.getElementById("orderTotal");
   const submitBtn = document.getElementById("submitOrder");
   const statusEl = document.getElementById("orderStatus");
+  const successEl = document.getElementById("orderSuccess");
+  const successSummaryEl = document.getElementById("orderSuccessSummary");
+  const successNumberEl = document.getElementById("orderSuccessNumber");
+  const headEl = document.getElementById("orderHead");
 
   const nameIn = document.getElementById("contactName");
   const emailIn = document.getElementById("contactEmail");
@@ -18,10 +22,21 @@
   const payTransfer = document.getElementById("payTransfer");
   const payHint = document.getElementById("payTransferHint");
 
+  let successShown = false;
+
   function setStatus(msg, isError) {
     if (!statusEl) return;
     statusEl.textContent = msg;
     statusEl.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function lineDetail(it, priced) {
+    const hwLabel =
+      it.hardwareLabel || (priced && priced.hardwareLabel) || "";
+    if (it.type === "ready") {
+      return `${it.colorLabel} · ${it.sizeId}${hwLabel ? " · " + hwLabel : ""}`;
+    }
+    return `“${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · garums " + it.lengthLabel : ""} · stiprinājums ${it.holeLabel || ""}${hwLabel ? " · " + hwLabel : ""}`;
   }
 
   function itemsForDb(items) {
@@ -76,9 +91,97 @@
     });
   }
 
+  function showSuccess(snapshot, orderNumber) {
+    successShown = true;
+    if (headEl) headEl.hidden = true;
+    if (emptyEl) emptyEl.hidden = true;
+    if (formEl) formEl.hidden = true;
+    if (successEl) successEl.hidden = false;
+
+    if (successNumberEl) {
+      if (orderNumber != null && orderNumber !== "") {
+        successNumberEl.hidden = false;
+        successNumberEl.textContent = "Pasūtījuma nr. " + orderNumber;
+      } else {
+        successNumberEl.hidden = true;
+        successNumberEl.textContent = "";
+      }
+    }
+
+    if (successSummaryEl) {
+      const items = snapshot.items || [];
+      const contact = snapshot.contact || {};
+      successSummaryEl.replaceChildren();
+
+      const heading = document.createElement("h3");
+      heading.textContent = "Pasūtījuma kopsavilkums";
+      successSummaryEl.appendChild(heading);
+
+      const ul = document.createElement("ul");
+      ul.className = "order-success-lines";
+      items.forEach((it) => {
+        const priced = Pricing ? Pricing.priceItem(it) : null;
+        const title =
+          it.type === "ready" ? "Gatavais modelis" : "Individuālais dizains";
+        const qty = Number(it.qty) || 1;
+        const li = document.createElement("li");
+        const left = document.createElement("span");
+        const strong = document.createElement("strong");
+        strong.textContent = title;
+        left.appendChild(strong);
+        left.appendChild(document.createElement("br"));
+        const muted = document.createElement("span");
+        muted.className = "muted";
+        muted.textContent = `${lineDetail(it, priced)} · ${qty} gab.`;
+        left.appendChild(muted);
+        li.appendChild(left);
+        if (priced && Pricing) {
+          const right = document.createElement("span");
+          right.textContent = Pricing.formatPrice(Pricing.lineTotal(it));
+          li.appendChild(right);
+        }
+        ul.appendChild(li);
+      });
+      successSummaryEl.appendChild(ul);
+
+      if (Pricing && items.length) {
+        const total = document.createElement("p");
+        total.className = "order-success-total";
+        total.textContent =
+          "Kopā: " + Pricing.formatPrice(Pricing.cartTotal(items));
+        successSummaryEl.appendChild(total);
+      }
+
+      const contactEl = document.createElement("p");
+      contactEl.className = "order-success-contact";
+      const payLabel =
+        contact.payment === "transfer"
+          ? "Pārskaitījums"
+          : "Skaidrā pie saņemšanas";
+      const bits = [contact.name, contact.phone].filter(Boolean).join(" · ");
+      contactEl.appendChild(document.createTextNode(bits));
+      if (contact.email) {
+        contactEl.appendChild(document.createElement("br"));
+        contactEl.appendChild(document.createTextNode(contact.email));
+      }
+      contactEl.appendChild(document.createElement("br"));
+      contactEl.appendChild(document.createTextNode("Maksājums: " + payLabel));
+      successSummaryEl.appendChild(contactEl);
+    }
+
+    if (successEl) {
+      successEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   function render() {
+    if (successShown) return;
+
     const data = Cart.load();
     const items = data.items;
+
+    if (successEl) successEl.hidden = true;
+    if (headEl) headEl.hidden = false;
 
     if (nameIn) nameIn.value = data.contact.name;
     if (emailIn) emailIn.value = data.contact.email;
@@ -111,16 +214,9 @@
       article.dataset.id = it.id;
 
       const priced = Pricing ? Pricing.priceItem(it) : null;
-      const hwLabel =
-        it.hardwareLabel ||
-        (priced && priced.hardwareLabel) ||
-        "";
       const title =
         it.type === "ready" ? "Gatavais modelis" : "Individuālais dizains";
-      const detail =
-        it.type === "ready"
-          ? `${it.colorLabel} · ${it.sizeId}${hwLabel ? " · " + hwLabel : ""}`
-          : `“${it.text || "—"}” · ${it.fontLabel} · ${it.colorLabel} · ${it.sizeLabel || it.sizeId || ""}${it.lengthLabel ? " · garums " + it.lengthLabel : ""} · stiprinājums ${it.holeLabel || ""}${hwLabel ? " · " + hwLabel : ""}`;
+      const detail = lineDetail(it, priced);
 
       const main = document.createElement("div");
       main.className = "order-line-main";
@@ -299,15 +395,19 @@
       console.warn("Custom item without preview image");
     }
 
-    const { error } = await sb.from("orders").insert({
-      name: data.contact.name,
-      email: data.contact.email || null,
-      phone: data.contact.phone,
-      school_class: data.contact.schoolClass || null,
-      payment_method: data.contact.payment || "cash",
-      note: data.contact.note || null,
-      items: dbItems,
-      status: "new",
+    const snapshot = {
+      items: data.items.slice(),
+      contact: { ...data.contact },
+    };
+
+    const { data: placed, error } = await sb.rpc("place_order", {
+      p_name: data.contact.name,
+      p_email: data.contact.email || "",
+      p_phone: data.contact.phone,
+      p_school_class: data.contact.schoolClass || "",
+      p_payment_method: data.contact.payment || "cash",
+      p_note: data.contact.note || "",
+      p_items: dbItems,
     });
 
     if (submitBtn) {
@@ -321,9 +421,11 @@
       return;
     }
 
+    const orderNumber =
+      placed && typeof placed === "object" ? placed.order_number : null;
+
     Cart.clear();
-    render();
-    setStatus("Paldies! Pasūtījums saņemts. Sazināsimies pa tālruni.");
+    showSuccess(snapshot, orderNumber);
   });
 
   const clearBtn = document.getElementById("clearOrder");
