@@ -10,8 +10,8 @@ window.TagLabFonts = (() => {
       label: "Overlock 900",
       supportsLatvian: false,
       suggest: "comfortaa-700",
-      /** Extra plate rim — fills gaps so the background joins (letter spacing stays natural) */
-      paddingFactor: 0.52,
+      /** Extra rim to join gaps — keep modest so Overlock letterforms stay readable */
+      paddingFactor: 0.22,
       weights: {
         900: { label: "900", file: "fonts/Overlock-Black.ttf" },
       },
@@ -20,7 +20,7 @@ window.TagLabFonts = (() => {
       label: "Overlock 700",
       supportsLatvian: false,
       suggest: "comfortaa-700",
-      paddingFactor: 0.52,
+      paddingFactor: 0.22,
       weights: {
         700: { label: "700", file: "fonts/Overlock-Bold.ttf" },
       },

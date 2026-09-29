@@ -310,6 +310,17 @@ a {
   transition: opacity 0.35s ease;
 }
 
+.product-carousel {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.product-carousel .carousel-frame img[data-carousel-main] {
+  aspect-ratio: 4 / 3;
+}
+
 .carousel {
   max-width: min(920px, var(--max));
   margin: 0 auto;

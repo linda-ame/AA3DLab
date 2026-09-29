@@ -4,30 +4,78 @@
       id: "blue",
       label: "Zils",
       hex: "#1565c0",
-      photo: "images/products/ridze-blue.jpg",
-      alt: "Zils 3D drukāts piekariņš ar uzrakstu RĪDZE",
+      photos: [
+        {
+          src: "images/products/ridze-blue.jpg",
+          alt: "Zils 3D drukāts piekariņš ar uzrakstu RĪDZE",
+        },
+        {
+          src: "images/products/ridze-blue-sizes.jpg",
+          alt: "Zili RĪDZE piekariņi trīs izmēros",
+        },
+        {
+          src: "images/products/ridze-four-colors.jpg",
+          alt: "RĪDZE piekariņi četrās krāsās, zils starp tiem",
+        },
+      ],
     },
     {
       id: "light-grey",
       label: "Gaiši pelēks",
       hex: "#c8ccd1",
-      photo: "images/products/ridze-sizes-colors.jpg",
-      alt: "Gaiši pelēks 3D drukāts piekariņš",
+      photos: [
+        {
+          src: "images/products/ridze-grey.jpg",
+          alt: "Gaiši pelēks 3D drukāts piekariņš ar uzrakstu RĪDZE",
+        },
+        {
+          src: "images/products/ridze-grey-stack.jpg",
+          alt: "Trīs gaiši pelēki RĪDZE piekariņi",
+        },
+        {
+          src: "images/products/ridze-four-colors.jpg",
+          alt: "RĪDZE piekariņi četrās krāsās, pelēks starp tiem",
+        },
+      ],
     },
     {
       id: "crimson",
       label: "Karmīnsarkans",
       hex: "#a01830",
       shine: true,
-      photo: "images/products/ridze-copper.jpg",
-      alt: "Karmīnsarkans 3D drukāts piekariņš ar spīdumu",
+      photos: [
+        {
+          src: "images/products/ridze-copper.jpg",
+          alt: "Karmīnsarkans 3D drukāts piekariņš ar spīdumu",
+        },
+        {
+          src: "images/products/ridze-crimson-stack.jpg",
+          alt: "Karmīnsarkani RĪDZE piekariņi ar spīdumu",
+        },
+        {
+          src: "images/products/ridze-four-colors.jpg",
+          alt: "RĪDZE piekariņi četrās krāsās, karmīnsarkans starp tiem",
+        },
+      ],
     },
     {
       id: "yellow",
       label: "Dzeltens",
       hex: "#e6c200",
-      photo: "images/products/ridze-cluster.jpg",
-      alt: "Dzeltens 3D drukāts piekariņš",
+      photos: [
+        {
+          src: "images/products/ridze-yellow.jpg",
+          alt: "Dzeltens 3D drukāts piekariņš ar uzrakstu RĪDZE",
+        },
+        {
+          src: "images/products/ridze-yellow-sizes.jpg",
+          alt: "Dzelteni RĪDZE piekariņi trīs izmēros",
+        },
+        {
+          src: "images/products/ridze-four-colors.jpg",
+          alt: "RĪDZE piekariņi četrās krāsās, dzeltens starp tiem",
+        },
+      ],
     },
   ];
 
@@ -41,8 +89,9 @@
   const hardwareRoot = document.getElementById("hardwareSeg");
   const note = document.getElementById("selectionNote");
   const priceEl = document.getElementById("selectionPrice");
-  const productImg = document.getElementById("productImg");
+  const productCarouselRoot = document.querySelector("[data-product-carousel]");
   const Pricing = window.TagLabPricing;
+  let productCarouselApi = null;
 
   const ORDER_SIZES =
     (window.TagLabConfig && window.TagLabConfig.ORDER_SIZES) || {
@@ -51,11 +100,17 @@
       L: { label: "L · ≈ 3 cm" },
     };
 
+  function colorPhotos(color) {
+    if (!color) return [];
+    if (Array.isArray(color.photos) && color.photos.length) return color.photos;
+    if (color.photo) return [{ src: color.photo, alt: color.alt || "" }];
+    return [];
+  }
+
   function applyColor() {
     const color = COLORS.find((c) => c.id === colorId) || COLORS[0];
-    if (productImg && color.photo) {
-      productImg.src = color.photo;
-      productImg.alt = color.alt;
+    if (productCarouselApi) {
+      productCarouselApi.setSlides(colorPhotos(color));
     }
     updateNote();
   }
@@ -172,25 +227,30 @@
     revealEls.forEach((el) => el.classList.add("is-in"));
   }
 
-  function initCarousel(root) {
+  function initCarousel(root, options) {
+    const opts = options || {};
     const main = root.querySelector("[data-carousel-main]");
-    const thumbs = [...root.querySelectorAll(".carousel-thumb")];
+    const thumbsRoot = root.querySelector("[data-carousel-thumbs]");
     const prev = root.querySelector("[data-carousel-prev]");
     const next = root.querySelector("[data-carousel-next]");
     const countEl = root.querySelector("[data-carousel-count]");
-    if (!main || !thumbs.length) return;
+    if (!main) return null;
 
+    let thumbs = [...root.querySelectorAll(".carousel-thumb")];
     let index = Math.max(
       0,
       thumbs.findIndex((t) => t.classList.contains("is-on"))
     );
+    if (index < 0) index = 0;
 
     function updateCount() {
       if (!countEl) return;
-      countEl.textContent = index + 1 + " / " + thumbs.length;
+      const n = Math.max(thumbs.length, 1);
+      countEl.textContent = index + 1 + " / " + n;
     }
 
     function show(i) {
+      if (!thumbs.length) return;
       index = ((i % thumbs.length) + thumbs.length) % thumbs.length;
       const thumb = thumbs[index];
       main.classList.add("is-fading");
@@ -215,9 +275,43 @@
       });
     }
 
-    thumbs.forEach((thumb, i) => {
-      thumb.addEventListener("click", () => show(i));
-    });
+    function bindThumbs() {
+      thumbs.forEach((thumb, i) => {
+        thumb.addEventListener("click", () => show(i));
+      });
+    }
+
+    function setSlides(slides) {
+      const list = Array.isArray(slides) ? slides.filter((s) => s && s.src) : [];
+      if (!thumbsRoot || !list.length) return;
+      thumbsRoot.innerHTML = "";
+      list.forEach((slide, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "carousel-thumb" + (i === 0 ? " is-on" : "");
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-selected", i === 0 ? "true" : "false");
+        btn.dataset.src = slide.src;
+        btn.dataset.alt = slide.alt || "";
+        const img = document.createElement("img");
+        img.src = slide.src;
+        img.alt = "";
+        img.width = 160;
+        img.height = 120;
+        img.loading = "lazy";
+        btn.appendChild(img);
+        thumbsRoot.appendChild(btn);
+      });
+      thumbs = [...thumbsRoot.querySelectorAll(".carousel-thumb")];
+      bindThumbs();
+      index = 0;
+      main.src = list[0].src;
+      main.alt = list[0].alt || "";
+      main.classList.remove("is-fading");
+      updateCount();
+    }
+
+    bindThumbs();
     if (prev) prev.addEventListener("click", () => show(index - 1));
     if (next) next.addEventListener("click", () => show(index + 1));
 
@@ -233,10 +327,19 @@
       }
     });
 
-    updateCount();
+    if (opts.slides) setSlides(opts.slides);
+    else updateCount();
+
+    return { show, setSlides };
   }
 
-  document.querySelectorAll("[data-carousel]").forEach(initCarousel);
+  document.querySelectorAll("[data-carousel]").forEach((root) => {
+    initCarousel(root);
+  });
+
+  if (productCarouselRoot) {
+    productCarouselApi = initCarousel(productCarouselRoot);
+  }
 
   const addReadyBtn = document.getElementById("addReadyBtn");
   if (addReadyBtn && window.AA3DCart) {

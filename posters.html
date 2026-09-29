@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="lv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AA3DLab — A4 plakāti</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #d8dee6;
+        --bg-mid: #e6eaee;
+        --ink: #16181c;
+        --muted: #4a5360;
+        --brass: #8a6e28;
+        --brass-ink: #6f5618;
+        --white: #f7f8fa;
+        --font-display: "Syne", sans-serif;
+        --font-body: "Figtree", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #9aa3ad;
+        color: var(--ink);
+        font-family: var(--font-body);
+      }
+
+      .screen-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: rgba(22, 24, 28, 0.92);
+        color: #e8eaed;
+        font-size: 0.9rem;
+      }
+
+      .screen-bar strong {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .screen-bar button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 4px;
+        padding: 0.55rem 1.1rem;
+        background: #c9a84a;
+        color: #16181c;
+        cursor: pointer;
+      }
+
+      .screen-bar button:hover {
+        background: #d4b45a;
+      }
+
+      .sheet-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      .sheet {
+        width: 210mm;
+        height: 297mm;
+        background: #e6eaee;
+        color: var(--ink);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(22, 24, 28, 0.28);
+      }
+
+      .sheet-bg-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 58% 32%;
+        opacity: 0.72;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .p2 .sheet-bg-photo {
+        opacity: 0.58;
+        object-position: 62% 28%;
+      }
+
+      .sheet-wash {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(210, 216, 224, 0.92) 0%,
+          rgba(220, 226, 232, 0.72) 22%,
+          rgba(230, 234, 238, 0.38) 55%,
+          rgba(220, 226, 232, 0.58) 100%
+        );
+      }
+
+      .sheet > *:not(.sheet-bg-photo):not(.sheet-wash) {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ——— Page 1: hero ——— */
+      .p1 {
+        display: grid;
+        grid-template-rows: auto 1fr auto auto;
+        padding: 14mm 16mm 12mm;
+        height: 100%;
+      }
+
+      .brand {
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        margin: 0;
+        font-size: 22mm;
+        color: var(--ink);
+      }
+
+      .headline {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin: 6mm 0 0;
+        font-size: 11mm;
+        max-width: 18ch;
+      }
+
+      .lede {
+        margin: 4mm 0 0;
+        font-size: 4.4mm;
+        line-height: 1.4;
+        color: var(--muted);
+        max-width: 38ch;
+        font-weight: 500;
+      }
+
+      .hero-sample {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+        margin: 6mm 0;
+      }
+
+      .hero-sample img {
+        width: 100%;
+        max-height: 62mm;
+        object-fit: contain;
+        display: block;
+      }
+
+      .cta-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6mm;
+        align-items: end;
+        border-top: 1px solid rgba(22, 24, 28, 0.14);
+        padding-top: 6mm;
+      }
+
+      .cta-copy h2 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 5mm;
+        letter-spacing: -0.02em;
+        margin: 0 0 2.5mm;
+      }
+
+      .cta-copy p {
+        margin: 0;
+        font-size: 3.8mm;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .cta-copy .url {
+        margin-top: 3mm;
+        font-weight: 600;
+        font-size: 3.6mm;
+        color: var(--brass-ink);
+        word-break: break-all;
+      }
+
+      .qr-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2mm;
+        flex-shrink: 0;
+      }
+
+      .qr-block img {
+        width: 62mm;
+        height: 62mm;
+        background: #fff;
+        padding: 2.5mm;
+        display: block;
+      }
+
+      .qr-block span {
+        font-size: 2.8mm;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ——— Page 2: samples ——— */
+      .p2 {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: 14mm 16mm 12mm;
+        height: 100%;
+      }
+
+      .p2 .brand {
+        font-size: 14mm;
+      }
+
+      .p2 .headline {
+        font-size: 8mm;
+        margin-top: 3mm;
+        max-width: none;
+      }
+
+      .p2 .lede {
+        margin-top: 3mm;
+        max-width: 42ch;
+      }
+
+      .samples {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5mm;
+        margin: 6mm 0;
+        min-height: 0;
+      }
+
+      .samples figure {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      .samples img {
+        width: 100%;
+        max-height: 34mm;
+        object-fit: contain;
+        display: block;
+      }
+
+      .foot-cta {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6mm;
+        align-items: end;
+        border-top: 1px solid rgba(22, 24, 28, 0.14);
+        padding-top: 6mm;
+      }
+
+      .foot-cta .instagram {
+        margin-top: 2.5mm;
+        font-size: 3.5mm;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      /* ——— Page 3: big QR for distance scan ——— */
+      .p3 {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: 16mm 16mm 14mm;
+        height: 100%;
+        text-align: center;
+      }
+
+      .p3 .sheet-bg-photo {
+        opacity: 0.45;
+      }
+
+      .p3 .sheet-wash {
+        background: linear-gradient(
+          to top,
+          rgba(230, 234, 238, 0.96) 0%,
+          rgba(230, 234, 238, 0.82) 28%,
+          rgba(230, 234, 238, 0.55) 58%,
+          rgba(230, 234, 238, 0.78) 100%
+        );
+      }
+
+      .p3 .brand {
+        font-size: 18mm;
+      }
+
+      .p3 .headline {
+        margin: 3mm auto 0;
+        font-size: 8mm;
+        max-width: none;
+      }
+
+      .qr-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5mm;
+        min-height: 0;
+      }
+
+      .qr-hero img {
+        width: 128mm;
+        height: 128mm;
+        max-width: 100%;
+        background: #fff;
+        padding: 5mm;
+        display: block;
+        box-sizing: border-box;
+      }
+
+      .qr-hero .scan-hint {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 5mm;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+
+      .p3-foot {
+        border-top: 1px solid rgba(22, 24, 28, 0.14);
+        padding-top: 5mm;
+      }
+
+      .p3-foot .url {
+        margin: 0;
+        font-weight: 600;
+        font-size: 4.2mm;
+        color: var(--brass-ink);
+      }
+
+      .p3-foot p {
+        margin: 2mm 0 0;
+        font-size: 3.6mm;
+        color: var(--muted);
+      }
+
+      @media print {
+        .screen-bar {
+          display: none !important;
+        }
+
+        html,
+        body {
+          background: none;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .sheet-wrap {
+          padding: 0;
+          gap: 0;
+        }
+
+        .sheet {
+          box-shadow: none;
+          width: 210mm;
+          height: 297mm;
+          page-break-after: always;
+          break-after: page;
+        }
+
+        .sheet:last-child {
+          page-break-after: auto;
+          break-after: auto;
+        }
+
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+      }
+
+      @media screen and (max-width: 900px) {
+        .sheet {
+          width: min(210mm, 100%);
+          height: auto;
+          aspect-ratio: 210 / 297;
+          transform-origin: top center;
+        }
+
+        .p1,
+        .p2 {
+          padding: 6%;
+        }
+
+        .brand {
+          font-size: clamp(2rem, 10vw, 22mm);
+        }
+
+        .headline {
+          font-size: clamp(1.25rem, 5vw, 11mm);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen-bar">
+      <div>
+        <strong>AA3DLab</strong> · 3× A4 plakāti drukai
+      </div>
+      <button type="button" onclick="window.print()">Drukāt / saglabāt PDF</button>
+    </div>
+
+    <div class="sheet-wrap">
+      <!-- PLAKĀTS 1 -->
+      <article class="sheet p1" aria-label="Plakāts 1">
+        <img
+          class="sheet-bg-photo"
+          src="images/products/backpack-lifestyle.jpg"
+          alt=""
+          width="768"
+          height="1024"
+        />
+        <div class="sheet-wash" aria-hidden="true"></div>
+        <header>
+          <p class="brand">AA3DLab</p>
+          <h1 class="headline">Izveido pats savu 3D piekariņu</h1>
+          <p class="lede">
+            Pasūti šeit uz vietas — vai apmeklē mūsu mājaslapu un radi pats savu
+            dizainu.
+          </p>
+        </header>
+
+        <div class="hero-sample">
+          <img
+            src="images/posters/sample-emilija.jpg"
+            alt="3D piekariņa paraugs EMĪLIJA"
+            width="1024"
+            height="358"
+          />
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-copy">
+            <h2>Mājaslapa</h2>
+            <p>
+              Noskenē QR un atver AA3DLab — izveido dizainu vai apskati gatavos
+              modeļus.
+            </p>
+            <p class="url">aa3dlab.vercel.app</p>
+          </div>
+          <div class="qr-block">
+            <img
+              src="images/posters/qr.png"
+              alt="QR kods uz AA3DLab"
+              width="1024"
+              height="1024"
+            />
+            <span>Skenē šeit</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- PLAKĀTS 2 -->
+      <article class="sheet p2" aria-label="Plakāts 2">
+        <img
+          class="sheet-bg-photo"
+          src="images/products/backpack-lifestyle.jpg"
+          alt=""
+          width="768"
+          height="1024"
+        />
+        <div class="sheet-wash" aria-hidden="true"></div>
+        <header>
+          <p class="brand">AA3DLab</p>
+          <h1 class="headline">Personalizēti piekariņi</h1>
+          <p class="lede">
+            Tu izvēlies tekstu, krāsu, izmēru un stiprinājuma veidu — pasūti šeit
+            uz vietas vai radi pats savu dizainu mājaslapā.
+          </p>
+        </header>
+
+        <div class="samples">
+          <figure>
+            <img
+              src="images/posters/sample-armands.jpg"
+              alt="Paraugs ARMANDS zilā krāsā"
+              width="1024"
+              height="258"
+            />
+          </figure>
+          <figure>
+            <img
+              src="images/posters/sample-kristaps.jpg"
+              alt="Paraugs KRISTAPS dzeltenā krāsā"
+              width="1024"
+              height="265"
+            />
+          </figure>
+          <figure>
+            <img
+              src="images/posters/sample-emilija.jpg"
+              alt="Paraugs EMĪLIJA sarkanā krāsā"
+              width="1024"
+              height="358"
+            />
+          </figure>
+        </div>
+
+        <div class="foot-cta">
+          <div class="cta-copy">
+            <h2>Mājaslapa</h2>
+            <p>Noskenē QR un radi pats savu dizainu.</p>
+            <p class="instagram">Instagram · @aa3dlab</p>
+            <p class="url">aa3dlab.vercel.app</p>
+          </div>
+          <div class="qr-block">
+            <img
+              src="images/posters/qr.png"
+              alt="QR kods uz AA3DLab"
+              width="1024"
+              height="1024"
+            />
+            <span>Skenē šeit</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- PLAKĀTS 3 — liels QR no attāluma -->
+      <article class="sheet p3" aria-label="Plakāts 3 — QR">
+        <img
+          class="sheet-bg-photo"
+          src="images/products/backpack-lifestyle.jpg"
+          alt=""
+          width="768"
+          height="1024"
+        />
+        <div class="sheet-wash" aria-hidden="true"></div>
+        <header>
+          <p class="brand">AA3DLab</p>
+          <h1 class="headline">Personalizēti piekariņi</h1>
+        </header>
+
+        <div class="qr-hero">
+          <img
+            src="images/posters/qr.png"
+            alt="QR kods uz AA3DLab"
+            width="1024"
+            height="1024"
+          />
+          <p class="scan-hint">Noskenē un atver mājaslapu</p>
+        </div>
+
+        <div class="p3-foot">
+          <p class="url">aa3dlab.vercel.app</p>
+          <p>Pasūti uz vietas vai radi pats savu dizainu.</p>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>
