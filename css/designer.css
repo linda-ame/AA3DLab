@@ -40,59 +40,78 @@ a {
   color: var(--brass-ink);
 }
 
-.app-bar {
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem 1.25rem;
-  padding: 0.9rem var(--space);
-  border-bottom: 1px solid var(--line);
-  background: rgba(230, 234, 238, 0.85);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem var(--space);
   backdrop-filter: blur(10px);
+  background: rgba(230, 234, 238, 0.82);
+  border-bottom: 1px solid var(--line);
 }
 
-.app-bar h1 {
-  margin: 0;
+.brand-mark {
   font-family: var(--font-display);
-  font-size: 1.15rem;
   font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: 1.15rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.top .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #f3f5f7;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.top .btn:hover {
+  background: #2a2e35;
+}
+
+.cart-badge[hidden],
+[data-cart-empty-cta][hidden] {
+  display: none !important;
+}
+
+.page-head {
+  padding: 1.25rem var(--space) 0.35rem;
+  max-width: none;
+}
+
+.page-head h1 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 3.5vw, 2rem);
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 
-.app-bar h1 a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.app-bar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem 1rem;
-  margin-left: auto;
-}
-
-.app-bar p {
+.page-head p {
   margin: 0;
   color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.cart-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 0.75rem;
-  border-radius: var(--radius);
-  background: var(--ink);
-  color: #f3f5f7;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.cart-chip[hidden] {
-  display: none !important;
+  font-size: 0.95rem;
+  max-width: 48ch;
 }
 
 .layout {

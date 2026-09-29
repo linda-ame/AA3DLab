@@ -1,4 +1,16 @@
 (() => {
+  const hash = (window.location.hash || "").toLowerCase();
+  const keepHashScroll =
+    hash && hash !== "#" && hash !== "#augsa" && hash !== "#saturs";
+  if (!keepHashScroll) {
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    const pinTop = () => window.scrollTo(0, 0);
+    pinTop();
+    window.addEventListener("load", pinTop);
+  }
+
   const COLORS = [
     {
       id: "blue",
@@ -268,11 +280,14 @@
 
       updateCount();
 
-      thumb.scrollIntoView({
-        behavior: "smooth",
-        inline: "nearest",
-        block: "nearest",
-      });
+      if (thumbsRoot && typeof thumbsRoot.scrollTo === "function") {
+        const left =
+          thumb.offsetLeft - (thumbsRoot.clientWidth - thumb.clientWidth) / 2;
+        thumbsRoot.scrollTo({
+          left: Math.max(0, left),
+          behavior: "smooth",
+        });
+      }
     }
 
     function bindThumbs() {
