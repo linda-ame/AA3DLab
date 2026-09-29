@@ -11,6 +11,23 @@
     window.addEventListener("load", pinTop);
   }
 
+  const brandHome = document.querySelector(".top .brand-mark");
+  if (brandHome) {
+    brandHome.addEventListener("click", (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const path = location.pathname || "";
+      const onHome =
+        path === "/" ||
+        path.endsWith("/") ||
+        /\/index\.html$/i.test(path) ||
+        path === "";
+      if (!onHome) return;
+      e.preventDefault();
+      history.replaceState(null, "", path + location.search);
+      window.scrollTo(0, 0);
+    });
+  }
+
   const COLORS = [
     {
       id: "blue",
